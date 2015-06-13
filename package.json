@@ -1,10 +1,14 @@
 {
   "name": "@moooji/storage",
-  "version": "0.10.2",
+  "version": "0.10.5",
   "description": "Storage provider based on Amazon S3",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --harmony index.js"
+  },
+  "engines": {
+    "node": ">=0.12.4"
   },
   "repository": {
     "type": "git",

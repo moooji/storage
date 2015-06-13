@@ -8,15 +8,15 @@ function storageProvider(options) {
 
     validateOptions(options);
 
-    var s3 = new AWS.S3({
+    const s3 = new AWS.S3({
         accessKeyId: options.accessKeyId,
         secretAccessKey: options.secretAccessKey,
         region: options.region
     });
 
-    var bucket = options.bucket;
-    var acl = options.acl ? options.acl : "public-read";
-    var uploadAsync = Promise.promisify(s3.upload, s3);
+    const bucket = options.bucket;
+    const acl = options.acl ? options.acl : "public-read";
+    const uploadAsync = Promise.promisify(s3.upload, s3);
 
     function put(buffer, path, mimeType, callback) {
 
@@ -35,13 +35,13 @@ function storageProvider(options) {
         // Calculate MD5 checksum of buffer
         // Amazon S3 will cross-check and return an error
         // if checksum of stored file does not match
-        var md5 = crypto.createHash('md5');
+        let md5 = crypto.createHash('md5');
         md5.update(buffer);
 
-        var md5Base64 = md5.digest('base64');
-        var eTag = '"' + Buffer(md5Base64, 'base64').toString('hex') + '"';
+        const md5Base64 = md5.digest('base64');
+        const eTag = '"' + Buffer(md5Base64, 'base64').toString('hex') + '"';
 
-        var params = {
+        const params = {
             Bucket: bucket,
             Key: path,
             Body: buffer,
