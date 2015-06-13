@@ -1,0 +1,30 @@
+{
+  "name": "@moooji/storage",
+  "version": "0.10.1",
+  "description": "Storage provider based on Amazon S3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moooji/storage.git"
+  },
+  "keywords": [
+    "Amazon",
+    "S3",
+    "AWS",
+    "storage"
+  ],
+  "email": "info@moooji.com",
+  "author": "Steffen Strätz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/moooji/storage/issues"
+  },
+  "homepage": "https://github.com/moooji/storage",
+  "dependencies": {
+    "aws-sdk": "^2.1.34",
+    "bluebird": "^2.9.27"
+  }
+}
