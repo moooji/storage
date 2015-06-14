@@ -25,22 +25,22 @@ function storageProvider (options) {
       throw Error("No buffer provided");
     }
 
-    if (!path || _.isString(path)) {
+    if (!path || !_.isString(path)) {
       throw Error("No valid path provided");
     }
 
-    if (!mimeType || _.isString(mimeType)) {
+    if (!mimeType || !_.isString(mimeType)) {
       throw Error("No valid mime type provided");
     }
 
     // Calculate MD5 checksum of buffer
     // Amazon S3 will cross-check and return an error
     // if checksum of stored file does not match
-    let md5 = crypto.createHash('md5');
-    md5.update(buffer);
+    let bufferHash = crypto.createHash('md5');
+    bufferHash.update(buffer);
 
-    const md5Base64 = md5.digest('base64');
-    const eTag = '"' + Buffer(md5Base64, 'base64').toString('hex') + '"';
+    const bufferHashBase64 = bufferHash.digest('base64');
+    const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
     const params = {
       Bucket: bucket,
@@ -48,7 +48,7 @@ function storageProvider (options) {
       Body: buffer,
       ACL: acl,
       ContentType: mimeType,
-      ContentMD5: md5Base64
+      ContentMD5: bufferHashBase64
     };
 
     return uploadAsync(params)
@@ -58,7 +58,7 @@ function storageProvider (options) {
           throw Error("ETag does not match buffer MD5 hash");
         }
 
-        if (_.isString(data.Location)) {
+        if (!_.isString(data.Location)) {
           throw Error("S3 did not return storage Url");
         }
 
