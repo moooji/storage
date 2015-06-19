@@ -4,6 +4,10 @@ var crypto = require("crypto");
 var Promise = require("bluebird");
 var AWS = require("aws-sdk");
 var _ = require("lodash");
+var createError = require('custom-error-generator');
+
+var StorageError = createError('StorageError');
+var InvalidArgumentError = createError('InvalidArgumentError');
 
 function storageProvider (options) {
 
@@ -22,15 +26,15 @@ function storageProvider (options) {
   function put (buffer, path, mimeType, callback) {
 
     if (!Buffer.isBuffer(buffer)) {
-      throw Error("No buffer provided");
+      throw InvalidArgumentError("No buffer provided");
     }
 
     if (!path || !_.isString(path)) {
-      throw Error("No valid path provided");
+      throw InvalidArgumentError("No valid path provided");
     }
 
     if (!mimeType || !_.isString(mimeType)) {
-      throw Error("No valid mime type provided");
+      throw InvalidArgumentError("No valid mime type provided");
     }
 
     // Calculate MD5 checksum of buffer
@@ -55,11 +59,11 @@ function storageProvider (options) {
       .then(function (data) {
 
         if (data.ETag !== eTag) {
-          throw Error("ETag does not match buffer MD5 hash");
+          throw StorageError("ETag does not match buffer MD5 hash");
         }
 
         if (!_.isString(data.Location)) {
-          throw Error("S3 did not return storage Url");
+          throw StorageError("S3 did not return storage Url");
         }
 
         return {
@@ -73,19 +77,19 @@ function storageProvider (options) {
   function validateOptions (options) {
 
     if (!options.accessKeyId) {
-      throw Error("No AWS 'accessKeyId' provided");
+      throw InvalidArgumentError("No AWS 'accessKeyId' provided");
     }
 
     if (!options.secretAccessKey) {
-      throw Error("No AWS 'secretAccessKey' provided");
+      throw InvalidArgumentError("No AWS 'secretAccessKey' provided");
     }
 
     if (!options.region) {
-      throw Error("No AWS S3 'region' provided");
+      throw InvalidArgumentError("No AWS S3 'region' provided");
     }
 
     if (!options.bucket) {
-      throw Error("No AWS S3 'bucket' provided");
+      throw InvalidArgumentError("No AWS S3 'bucket' provided");
     }
   }
 
