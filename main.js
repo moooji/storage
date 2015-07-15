@@ -132,14 +132,11 @@ function storageProvider(options) {
         return deleteAsync(params)
             .then(function (data) {
 
-                if (!_.isString(data.Key) || !_.isString(data.VersionId)) {
+                if (!data) {
                     throw StorageError("S3 did not return valid deletion result");
                 }
 
-                return {
-                    path: data.Key,
-                    versionId: data.VersionId
-                };
+                return data;
             })
             .nodeify(callback);
     }
