@@ -38,11 +38,11 @@ function storageProvider (options) {
       throw InvalidArgumentError("No buffer provided");
     }
 
-    if (!path || !_.isString(path)) {
+    if (!_.isString(path)) {
       throw InvalidArgumentError("No valid path provided");
     }
 
-    if (!mimeType || !_.isString(mimeType)) {
+    if (!_.isString(mimeType)) {
       throw InvalidArgumentError("No valid mime type provided");
     }
 
@@ -84,21 +84,48 @@ function storageProvider (options) {
   }
 
   /***
-   * Removes an object from storage
-   * @param {String} path
+   * Removes one or several objects from storage
+   * @param {String || [String]} paths
    * @param {Function} [callback]
    * @returns {Promise}
    */
-  function remove (path, callback) {
+  function remove (paths, callback) {
 
-    if (!path || !_.isString(path)) {
+    let objects = [];
+
+    if (!(_.isString(paths) || _.isArray(paths))) {
       throw InvalidArgumentError("No valid path provided");
+    }
+
+    if (_.isArray(paths) && !paths.length) {
+      throw InvalidArgumentError("No valid path provided");
+    }
+
+    if(_.isArray(paths)) {
+
+      // Ensure uniqueness
+      paths = _.uniq(paths);
+
+      // Iterate through paths
+      // and ensure that they are strings
+      for (let path of paths) {
+
+        if (!_.isString(path)) {
+          throw InvalidArgumentError("No valid path provided");
+        }
+
+        // Build object and add to list
+        objects.push({ Key: path });
+      }
+    }
+    else {
+      objects.push({ Key: paths });
     }
 
     const params = {
       Bucket: bucket,
       Delete: {
-        Objects: [{ Key: path }],
+        Objects: objects,
         Quiet: false
       },
       RequestPayer: 'requester'

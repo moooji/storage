@@ -1,43 +1,66 @@
-var should = require('chai').should;
-var expect = require('chai').expect;
-var storage = require('../main');
+"use strict";
 
-var InvalidArgumentError = storage.InvalidArgumentError;
+const should = require('chai').should;
+const expect = require('chai').expect;
+const StorageProvider = require('../main');
 
 describe('Remove', function() {
+
+    let storage = null;
+
+    before(function() {
+
+        storage = StorageProvider({
+            accessKeyId: "accessKeyId",
+            secretAccessKey: "secretAccessKey",
+            region: "region",
+            bucket: "bucket"
+        });
+    });
+
+    after(function() {
+        storage = null;
+    });
 
     it('should throw an InvalidArgumentError if path is a number', function () {
 
         expect(function () {
             return storage.remove(123);
-        }).to.throw(InvalidArgumentError);
+        }).to.throw(storage.InvalidArgumentError);
     });
 
     it('should throw an InvalidArgumentError if path is an object', function () {
 
         expect(function () {
             return storage.remove({});
-        }).to.throw(InvalidArgumentError);
+        }).to.throw(storage.InvalidArgumentError);
     });
 
-    it('should throw an InvalidArgumentError if path is an array', function () {
+    it('should throw an InvalidArgumentError if path is an empty array', function () {
 
         expect(function () {
             return storage.remove([]);
-        }).to.throw(InvalidArgumentError);
+        }).to.throw(storage.InvalidArgumentError);
+    });
+
+    it('should throw an InvalidArgumentError if path is an non string array', function () {
+
+        expect(function () {
+            return storage.remove(["abc", 123, {}]);
+        }).to.throw(storage.InvalidArgumentError);
     });
 
     it('should throw an InvalidArgumentError if path is null', function () {
 
         expect(function () {
             return storage.remove(null);
-        }).to.throw(InvalidArgumentError);
+        }).to.throw(storage.InvalidArgumentError);
     });
 
     it('should throw an InvalidArgumentError if path is undefined', function () {
 
         expect(function () {
             return storage.remove(undefined);
-        }).to.throw(InvalidArgumentError);
+        }).to.throw(storage.InvalidArgumentError);
     });
 });
