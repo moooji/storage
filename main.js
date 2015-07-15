@@ -136,6 +136,7 @@ function storageProvider(options) {
                     throw StorageError("S3 did not return valid deletion result");
                 }
 
+                console.log(data);
                 const paths = _.map(data, function(item) {
                     return item.Key
                 });

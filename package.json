@@ -1,6 +1,6 @@
 {
   "name": "@moooji/storage",
-  "version": "0.10.12",
+  "version": "0.10.13",
   "description": "Storage provider based on Amazon S3",
   "main": "main.js",
   "scripts": {
