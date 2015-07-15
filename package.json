@@ -1,10 +1,10 @@
 {
   "name": "@moooji/storage",
-  "version": "0.10.10",
+  "version": "0.10.11",
   "description": "Storage provider based on Amazon S3",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --harmony",
     "start": "node --harmony main.js"
   },
   "engines": {
@@ -30,6 +30,11 @@
   "dependencies": {
     "aws-sdk": "^2.1.36",
     "bluebird": "^2.9.30",
-    "custom-error-generator": "^7.0.0"
+    "custom-error-generator": "^7.0.0",
+    "lodash": "^3.10.0"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "mocha": "^2.2.5"
   }
 }

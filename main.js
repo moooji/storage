@@ -22,7 +22,16 @@ function storageProvider (options) {
   const bucket = options.bucket;
   const acl = options.acl ? options.acl : "public-read";
   const uploadAsync = Promise.promisify(s3.upload, s3);
+  const deleteAsync = Promise.promisify(s3.deleteObjects, s3);
 
+  /***
+   * Stores a buffer as object in storage
+   * @param {Buffer }buffer
+   * @param {String} path
+   * @param {String} mimeType
+   * @param {Function} [callback]
+   * @returns {Promise}
+   */
   function put (buffer, path, mimeType, callback) {
 
     if (!Buffer.isBuffer(buffer)) {
@@ -74,6 +83,42 @@ function storageProvider (options) {
       .nodeify(callback);
   }
 
+  /***
+   * Removes an object from storage
+   * @param {String} path
+   * @param {Function} [callback]
+   * @returns {Promise}
+   */
+  function remove (path, callback) {
+
+    if (!path || !_.isString(path)) {
+      throw InvalidArgumentError("No valid path provided");
+    }
+
+    const params = {
+      Bucket: bucket,
+      Delete: {
+        Objects: [{ Key: path }],
+        Quiet: false
+      },
+      RequestPayer: 'requester'
+    };
+
+    return deleteAsync(params)
+        .then(function (data) {
+
+          if(!_.isString(data.Key) || !_.isString(data.VersionId)) {
+            throw StorageError("S3 did not return valid deletion result");
+          }
+
+          return {
+            key: data.Key,
+            versionId: data.VersionId
+          };
+        })
+        .nodeify(callback);
+  }
+
   function validateOptions (options) {
 
     if (!options.accessKeyId) {
@@ -94,7 +139,10 @@ function storageProvider (options) {
   }
 
   return {
-    put: put
+    put: put,
+    remove: remove,
+    InvalidArgumentError: InvalidArgumentError,
+    StorageError: StorageError
   };
 }
 
