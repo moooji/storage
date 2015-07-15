@@ -132,12 +132,11 @@ function storageProvider(options) {
         return deleteAsync(params)
             .then(function (data) {
 
-                if (!data) {
+                if (!data || !data.Deleted) {
                     throw StorageError("S3 did not return valid deletion result");
                 }
 
-                console.log(data);
-                const paths = _.map(data, function(item) {
+                const paths = _.map(data.Deleted, function(item) {
                     return item.Key
                 });
 
