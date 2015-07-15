@@ -96,7 +96,7 @@ function storageProvider(options) {
         if (_.isString(paths)) {
 
             // Build object and add to list
-            objects.push({Key: paths});
+            objects.push({ Key: paths });
 
         }
         else if (_.isArray(paths) && paths.length) {
@@ -113,7 +113,7 @@ function storageProvider(options) {
                 }
 
                 // Build object and add to list
-                objects.push({Key: path});
+                objects.push({ Key: path });
             }
         }
         else {
@@ -136,7 +136,11 @@ function storageProvider(options) {
                     throw StorageError("S3 did not return valid deletion result");
                 }
 
-                return data;
+                const paths = _.map(data, function(item) {
+                    return item.Key
+                });
+
+                return { paths: paths };
             })
             .nodeify(callback);
     }
