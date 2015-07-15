@@ -93,15 +93,13 @@ function storageProvider (options) {
 
     let objects = [];
 
-    if (!(_.isString(paths) || _.isArray(paths))) {
-      throw InvalidArgumentError("No valid path provided");
-    }
+    if(_.isString(paths)) {
 
-    if (_.isArray(paths) && !paths.length) {
-      throw InvalidArgumentError("No valid path provided");
-    }
+      // Build object and add to list
+      objects.push({ Key: paths });
 
-    if(_.isArray(paths)) {
+    }
+    else if(_.isArray(paths) && paths.length) {
 
       // Ensure uniqueness
       paths = _.uniq(paths);
@@ -119,7 +117,7 @@ function storageProvider (options) {
       }
     }
     else {
-      objects.push({ Key: paths });
+      throw InvalidArgumentError("No valid path provided");
     }
 
     const params = {
