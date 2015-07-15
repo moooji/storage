@@ -112,7 +112,7 @@ function storageProvider (options) {
           }
 
           return {
-            key: data.Key,
+            path: data.Key,
             versionId: data.VersionId
           };
         })
