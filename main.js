@@ -24,7 +24,7 @@ function storageProvider(options) {
     const uploadAsync = Promise.promisify(s3.upload, s3);
     const deleteAsync = Promise.promisify(s3.deleteObjects, s3);
 
-    /***
+    /**
      * Stores a buffer as object in storage
      * @param {Buffer }buffer
      * @param {String} path
@@ -83,7 +83,7 @@ function storageProvider(options) {
             .nodeify(callback);
     }
 
-    /***
+    /**
      * Removes one or several objects from storage
      * @param {String || [String]} paths
      * @param {Function} [callback]
