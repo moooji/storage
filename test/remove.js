@@ -2,7 +2,7 @@
 
 const should = require('chai').should;
 const expect = require('chai').expect;
-const StorageProvider = require('../main');
+const storageProvider = require('../main');
 
 describe('Remove', function() {
 
@@ -10,7 +10,7 @@ describe('Remove', function() {
 
     before(function() {
 
-        storage = StorageProvider({
+        storage = storageProvider({
             accessKeyId: "accessKeyId",
             secretAccessKey: "secretAccessKey",
             region: "region",
