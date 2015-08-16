@@ -34,45 +34,48 @@ function storageProvider(options) {
      */
     function put(buffer, path, mimeType, callback) {
 
-        if (!Buffer.isBuffer(buffer)) {
-            throw InvalidArgumentError("No buffer provided");
-        }
+        return Promise.resolve(buffer).
+            then(function(buffer) {
 
-        if (!_.isString(path)) {
-            throw InvalidArgumentError("No valid path provided");
-        }
+                if (!Buffer.isBuffer(buffer)) {
+                    throw new InvalidArgumentError("No buffer provided");
+                }
 
-        if (!_.isString(mimeType)) {
-            throw InvalidArgumentError("No valid mime type provided");
-        }
+                if (!_.isString(path)) {
+                    throw new InvalidArgumentError("No valid path provided");
+                }
 
-        // Calculate MD5 checksum of buffer
-        // Amazon S3 will cross-check and return an error
-        // if checksum of stored file does not match
-        let bufferHash = crypto.createHash('md5');
-        bufferHash.update(buffer);
+                if (!_.isString(mimeType)) {
+                    throw new InvalidArgumentError("No valid mime type provided");
+                }
 
-        const bufferHashBase64 = bufferHash.digest('base64');
-        const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
+                // Calculate MD5 checksum of buffer
+                // Amazon S3 will cross-check and return an error
+                // if checksum of stored file does not match
+                let bufferHash = crypto.createHash('md5');
+                bufferHash.update(buffer);
 
-        const params = {
-            Bucket: bucket,
-            Key: path,
-            Body: buffer,
-            ACL: acl,
-            ContentType: mimeType,
-            ContentMD5: bufferHashBase64
-        };
+                const bufferHashBase64 = bufferHash.digest('base64');
+                const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
-        return uploadAsync(params)
+                return {
+                    Bucket: bucket,
+                    Key: path,
+                    Body: buffer,
+                    ACL: acl,
+                    ContentType: mimeType,
+                    ContentMD5: bufferHashBase64
+                };
+            })
+            .then(uploadAsync)
             .then(function (data) {
 
                 if (data.ETag !== eTag) {
-                    throw StorageError("ETag does not match buffer MD5 hash");
+                    throw new StorageError("ETag does not match buffer MD5 hash");
                 }
 
                 if (!_.isString(data.Location)) {
-                    throw StorageError("S3 did not return storage Url");
+                    throw new StorageError("S3 did not return storage Url");
                 }
 
                 return {
@@ -109,7 +112,7 @@ function storageProvider(options) {
             for (let path of paths) {
 
                 if (!_.isString(path)) {
-                    throw InvalidArgumentError("No valid path provided");
+                    throw new InvalidArgumentError("No valid path provided");
                 }
 
                 // Build object and add to list
@@ -117,7 +120,7 @@ function storageProvider(options) {
             }
         }
         else {
-            throw InvalidArgumentError("No valid path provided");
+            throw new InvalidArgumentError("No valid path provided");
         }
 
         const params = {
@@ -133,7 +136,7 @@ function storageProvider(options) {
             .then(function (data) {
 
                 if (!data || !data.Deleted) {
-                    throw StorageError("S3 did not return valid deletion result");
+                    throw new StorageError("S3 did not return valid deletion result");
                 }
 
                 const paths = _.map(data.Deleted, function(item) {
@@ -148,19 +151,19 @@ function storageProvider(options) {
     function validateOptions(options) {
 
         if (!options.accessKeyId) {
-            throw InvalidArgumentError("No AWS 'accessKeyId' provided");
+            throw new InvalidArgumentError("No AWS 'accessKeyId' provided");
         }
 
         if (!options.secretAccessKey) {
-            throw InvalidArgumentError("No AWS 'secretAccessKey' provided");
+            throw new InvalidArgumentError("No AWS 'secretAccessKey' provided");
         }
 
         if (!options.region) {
-            throw InvalidArgumentError("No AWS S3 'region' provided");
+            throw new InvalidArgumentError("No AWS S3 'region' provided");
         }
 
         if (!options.bucket) {
-            throw InvalidArgumentError("No AWS S3 'bucket' provided");
+            throw new InvalidArgumentError("No AWS S3 'bucket' provided");
         }
     }
 
