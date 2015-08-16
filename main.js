@@ -21,7 +21,7 @@ function storageProvider(options) {
 
     const bucket = options.bucket;
     const acl = options.acl ? options.acl : "public-read";
-    //const uploadAsync = Promise.promisify(s3.upload, s3);
+    const uploadAsync = Promise.promisify(s3.upload, s3);
     const deleteAsync = Promise.promisify(s3.deleteObjects, s3);
 
     /**
@@ -34,47 +34,39 @@ function storageProvider(options) {
      */
     function put(buffer, path, mimeType, callback) {
 
-        console.log("put");
-        return Promise.resolve(buffer).
-            then(function(buffer) {
+        if (!Buffer.isBuffer(buffer)) {
+            throw new InvalidArgumentError("No buffer provided");
+        }
 
-                if (!Buffer.isBuffer(buffer)) {
-                    throw new InvalidArgumentError("No buffer provided");
-                }
+        if (!_.isString(path)) {
+            throw new InvalidArgumentError("No valid path provided");
+        }
 
-                if (!_.isString(path)) {
-                    throw new InvalidArgumentError("No valid path provided");
-                }
+        if (!_.isString(mimeType)) {
+            throw new InvalidArgumentError("No valid mime type provided");
+        }
 
-                if (!_.isString(mimeType)) {
-                    throw new InvalidArgumentError("No valid mime type provided");
-                }
+        // Calculate MD5 checksum of buffer
+        // Amazon S3 will cross-check and return an error
+        // if checksum of stored file does not match
+        let bufferHash = crypto.createHash('md5');
+        bufferHash.update(buffer);
 
-                // Calculate MD5 checksum of buffer
-                // Amazon S3 will cross-check and return an error
-                // if checksum of stored file does not match
-                let bufferHash = crypto.createHash('md5');
-                bufferHash.update(buffer);
+        const bufferHashBase64 = bufferHash.digest('base64');
+        const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
-                const bufferHashBase64 = bufferHash.digest('base64');
-                const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
+        const params = {
+            Bucket: bucket,
+            Key: path,
+            Body: buffer,
+            ACL: acl,
+            ContentType: mimeType,
+            ContentMD5: bufferHashBase64
+        };
 
-                const params = {
-                    Bucket: bucket,
-                    Key: path,
-                    Body: buffer,
-                    ACL: acl,
-                    ContentType: mimeType,
-                    ContentMD5: bufferHashBase64
-                };
-
-                console.log(params);
-                return params;
-            })
-            .then(uploadAsync)
+        return uploadAsync(params)
             .then(function (data) {
-                console.log("DATA");
-console.log(data);
+
                 if (data.ETag !== eTag) {
                     throw new StorageError("ETag does not match buffer MD5 hash");
                 }
@@ -88,32 +80,8 @@ console.log(data);
                     url: data.Location
                 };
             })
-            .catch(function(err){
-                console.error(err);
-                console.log(err.stack);
-                throw err;
-            })
             .nodeify(callback);
     }
-
-    function uploadAsync(params) {
-
-        console.log("Upload async");
-
-        return new Promise(function (resolve, reject) {
-
-            s3.upload(params, function(err, res){
-                if (err) {
-                    console.error(err);
-                    return reject(err);
-                }
-
-                console.log("Resolve");
-                return resolve(res);
-            });
-        });
-    }
-
 
     /**
      * Removes one or several objects from storage
