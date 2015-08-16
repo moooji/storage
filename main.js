@@ -34,6 +34,7 @@ function storageProvider(options) {
      */
     function put(buffer, path, mimeType, callback) {
 
+        console.log("put");
         return Promise.resolve(buffer).
             then(function(buffer) {
 
@@ -69,7 +70,7 @@ function storageProvider(options) {
             })
             .then(uploadAsync)
             .then(function (data) {
-
+console.log(data);
                 if (data.ETag !== eTag) {
                     throw new StorageError("ETag does not match buffer MD5 hash");
                 }
