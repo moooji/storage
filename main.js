@@ -59,7 +59,7 @@ function storageProvider(options) {
                 const bufferHashBase64 = bufferHash.digest('base64');
                 const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
-                return {
+                const params = {
                     Bucket: bucket,
                     Key: path,
                     Body: buffer,
@@ -67,6 +67,9 @@ function storageProvider(options) {
                     ContentType: mimeType,
                     ContentMD5: bufferHashBase64
                 };
+
+                console.log(params);
+                return params;
             })
             .then(uploadAsync)
             .then(function (data) {
@@ -83,6 +86,11 @@ console.log(data);
                     eTag: data.ETag,
                     url: data.Location
                 };
+            })
+            .catch(function(err){
+                console.error(err);
+                console.log(err.stack);
+                throw err;
             })
             .nodeify(callback);
     }
