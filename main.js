@@ -73,6 +73,7 @@ function storageProvider(options) {
             })
             .then(uploadAsync)
             .then(function (data) {
+                console.log("DATA");
 console.log(data);
                 if (data.ETag !== eTag) {
                     throw new StorageError("ETag does not match buffer MD5 hash");
