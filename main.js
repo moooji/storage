@@ -21,7 +21,7 @@ function storageProvider(options) {
 
     const bucket = options.bucket;
     const acl = options.acl ? options.acl : "public-read";
-    const uploadAsync = Promise.promisify(s3.upload, s3);
+    //const uploadAsync = Promise.promisify(s3.upload, s3);
     const deleteAsync = Promise.promisify(s3.deleteObjects, s3);
 
     /**
@@ -95,6 +95,25 @@ console.log(data);
             })
             .nodeify(callback);
     }
+
+    function uploadAsync(params) {
+
+        console.log("Upload async");
+
+        return new Promise(function (resolve, reject) {
+
+            s3.upload(params, function(err, res){
+                if (err) {
+                    console.error(err);
+                    return reject(err);
+                }
+
+                console.log("Resolve");
+                return resolve(res);
+            });
+        });
+    }
+
 
     /**
      * Removes one or several objects from storage
