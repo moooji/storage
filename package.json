@@ -1,6 +1,6 @@
 {
   "name": "@moooji/storage",
-  "version": "0.10.19",
+  "version": "0.10.20",
   "description": "Storage provider based on Amazon S3",
   "main": "main.js",
   "scripts": {
@@ -22,7 +22,7 @@
   ],
   "email": "info@moooji.com",
   "author": "Steffen Strätz",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/moooji/storage/issues"
   },
