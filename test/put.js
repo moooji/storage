@@ -1,60 +1,58 @@
-"use strict";
+'use strict';
 
-const should = require('chai').should;
 const expect = require('chai').expect;
 const storageProvider = require('../main');
 
+describe('Put', () => {
 
-describe('Put', function() {
+  let storage = null;
 
-    let storage = null;
+  before(() => {
 
-    before(function() {
-
-        storage = storageProvider({
-            accessKeyId: "accessKeyId",
-            secretAccessKey: "secretAccessKey",
-            region: "region",
-            bucket: "bucket"
-        });
+    storage = storageProvider({
+      accessKeyId: 'accessKeyId',
+      secretAccessKey: 'secretAccessKey',
+      region: 'region',
+      bucket: 'bucket'
     });
+  });
 
-    after(function() {
-        storage = null;
-    });
+  after(() => {
+    storage = null;
+  });
 
-    it('should throw an InvalidArgumentError if path is a number', function () {
+  it('should throw an InvalidArgumentError if path is a number', () => {
 
-        expect(function () {
-            return storage.put(123);
-        }).to.throw(storage.InvalidArgumentError);
-    });
+    expect(() => {
+      return storage.put(123);
+    }).to.throw(storage.InvalidArgumentError);
+  });
 
-    it('should throw an InvalidArgumentError if path is an object', function () {
+  it('should throw an InvalidArgumentError if path is an object', () => {
 
-        expect(function () {
-            return storage.put({});
-        }).to.throw(storage.InvalidArgumentError);
-    });
+    expect(() => {
+      return storage.put({});
+    }).to.throw(storage.InvalidArgumentError);
+  });
 
-    it('should throw an InvalidArgumentError if path is an array', function () {
+  it('should throw an InvalidArgumentError if path is an array', () => {
 
-        expect(function () {
-            return storage.put([]);
-        }).to.throw(storage.InvalidArgumentError);
-    });
+    expect(() => {
+      return storage.put([]);
+    }).to.throw(storage.InvalidArgumentError);
+  });
 
-    it('should throw an InvalidArgumentError if path is null', function () {
+  it('should throw an InvalidArgumentError if path is null', () => {
 
-        expect(function () {
-            return storage.put(null);
-        }).to.throw(storage.InvalidArgumentError);
-    });
+    expect(() => {
+      return storage.put(null);
+    }).to.throw(storage.InvalidArgumentError);
+  });
 
-    it('should throw an InvalidArgumentError if path is undefined', function () {
+  it('should throw an InvalidArgumentError if path is undefined', () => {
 
-        expect(function () {
-            return storage.put(undefined);
-        }).to.throw(storage.InvalidArgumentError);
-    });
+    expect(() => {
+      return storage.put(undefined);
+    }).to.throw(storage.InvalidArgumentError);
+  });
 });

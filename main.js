@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
-var crypto = require("crypto");
-var Promise = require("bluebird");
-var AWS = require("aws-sdk");
-var _ = require("lodash");
-var createError = require('custom-error-generator');
+const crypto = require('crypto');
+const Bluebird = require('bluebird');
+const AWS = require('aws-sdk');
+const _ = require('lodash');
+const createError = require('custom-error-generator');
 
-var StorageError = createError('StorageError');
-var InvalidArgumentError = createError('InvalidArgumentError');
+const StorageError = createError('StorageError');
+const InvalidArgumentError = createError('InvalidArgumentError');
 
 function storageProvider(options) {
 
@@ -20,31 +20,31 @@ function storageProvider(options) {
   });
 
   const bucket = options.bucket;
-  const acl = options.acl ? options.acl : "public-read";
-  const uploadAsync = Promise.promisify(s3.upload, s3);
-  const deleteAsync = Promise.promisify(s3.deleteObjects, s3);
+  const acl = options.acl ? options.acl : 'public-read';
+  const uploadAsync = Bluebird.promisify(s3.upload, s3);
+  const deleteAsync = Bluebird.promisify(s3.deleteObjects, s3);
 
   /**
    * Stores a buffer as object in storage
-   *
    * @param {Buffer }buffer
    * @param {String} path
    * @param {String} mimeType
    * @param {Function} [callback]
    * @returns {Promise}
    */
+
   function put(buffer, path, mimeType, callback) {
 
     if (!Buffer.isBuffer(buffer)) {
-      throw new InvalidArgumentError("No buffer provided");
+      throw new InvalidArgumentError('No buffer provided');
     }
 
     if (!_.isString(path)) {
-      throw new InvalidArgumentError("No valid path provided");
+      throw new InvalidArgumentError('No valid path provided');
     }
 
     if (!_.isString(mimeType)) {
-      throw new InvalidArgumentError("No valid mime type provided");
+      throw new InvalidArgumentError('No valid mime type provided');
     }
 
     // Calculate MD5 checksum of buffer
@@ -54,7 +54,7 @@ function storageProvider(options) {
     bufferHash.update(buffer);
 
     const bufferHashBase64 = bufferHash.digest('base64');
-    const eTag = '"' + Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
+    const eTag = '"' + new Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
     const params = {
       Bucket: bucket,
@@ -66,14 +66,14 @@ function storageProvider(options) {
     };
 
     return uploadAsync(params)
-      .then(function(data) {
+      .then((data) => {
 
         if (data.ETag !== eTag) {
-          throw new StorageError("ETag does not match buffer MD5 hash");
+          throw new StorageError('ETag does not match buffer MD5 hash');
         }
 
         if (!_.isString(data.Location)) {
-          throw new StorageError("S3 did not return storage Url");
+          throw new StorageError('S3 did not return storage Url');
         }
 
         return {
@@ -86,11 +86,11 @@ function storageProvider(options) {
 
   /**
    * Removes one or several objects from storage
-   *
-   * @param {String || [String]} paths
+   * @param {String|Array<String>} paths
    * @param {Function} [callback]
    * @returns {Promise}
    */
+
   function remove(paths, callback) {
 
     let objects = [];
@@ -100,26 +100,24 @@ function storageProvider(options) {
       // Build object and add to list
       objects.push({Key: paths});
 
-    }
-    else if (_.isArray(paths) && paths.length) {
+    } else if (_.isArray(paths) && paths.length) {
 
       // Ensure uniqueness
       paths = _.uniq(paths);
 
       // Iterate through paths
       // and ensure that they are strings
-      for (let path of paths) {
+      paths.forEach((path) => {
 
         if (!_.isString(path)) {
-          throw new InvalidArgumentError("No valid path provided");
+          throw new InvalidArgumentError('No valid path provided');
         }
 
         // Build object and add to list
         objects.push({Key: path});
-      }
-    }
-    else {
-      throw new InvalidArgumentError("No valid path provided");
+      });
+    } else {
+      throw new InvalidArgumentError('No valid path provided');
     }
 
     const params = {
@@ -132,14 +130,14 @@ function storageProvider(options) {
     };
 
     return deleteAsync(params)
-      .then(function(data) {
+      .then((data) => {
 
         if (!data || !data.Deleted) {
-          throw new StorageError("S3 did not return valid deletion result");
+          throw new StorageError('S3 did not return valid deletion result');
         }
 
-        const paths = _.map(data.Deleted, function(item) {
-          return item.Key
+        const paths = _.map(data.Deleted, (item) => {
+          return item.Key;
         });
 
         return {paths: paths};
@@ -150,19 +148,19 @@ function storageProvider(options) {
   function validateOptions(options) {
 
     if (!options.accessKeyId) {
-      throw new InvalidArgumentError("No AWS 'accessKeyId' provided");
+      throw new InvalidArgumentError('Missing AWS accessKeyId');
     }
 
     if (!options.secretAccessKey) {
-      throw new InvalidArgumentError("No AWS 'secretAccessKey' provided");
+      throw new InvalidArgumentError('Missing AWS secretAccessKey');
     }
 
     if (!options.region) {
-      throw new InvalidArgumentError("No AWS S3 'region' provided");
+      throw new InvalidArgumentError('Missing AWS S3 region');
     }
 
     if (!options.bucket) {
-      throw new InvalidArgumentError("No AWS S3 'bucket' provided");
+      throw new InvalidArgumentError('Missing AWS S3 bucket');
     }
   }
 
