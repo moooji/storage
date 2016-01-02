@@ -1,7 +1,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const Bluebird = require('bluebird');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 const createError = require('custom-error-generator');
