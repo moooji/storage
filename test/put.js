@@ -1,15 +1,18 @@
 'use strict';
 
-const expect = require('chai').expect;
-const storageProvider = require('../main');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+const sinon = require('sinon');
+const storage = require('../main');
+
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 describe('Put', () => {
-
-  let storage = null;
+  let testStorage = null;
 
   before(() => {
-
-    storage = storageProvider({
+    testStorage = storage.create({
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       region: 'region',
@@ -18,41 +21,31 @@ describe('Put', () => {
   });
 
   after(() => {
-    storage = null;
+    testStorage = null;
   });
 
-  it('should throw an InvalidArgumentError if path is a number', () => {
-
-    expect(() => {
-      return storage.put(123);
-    }).to.throw(storage.InvalidArgumentError);
+  it('should be.rejectedWith an InvalidArgumentError if path is a number', () => {
+    return expect(testStorage.put(123))
+      .to.be.rejectedWith(testStorage.InvalidArgumentError);
   });
 
-  it('should throw an InvalidArgumentError if path is an object', () => {
-
-    expect(() => {
-      return storage.put({});
-    }).to.throw(storage.InvalidArgumentError);
+  it('should be.rejectedWith an InvalidArgumentError if path is an object', () => {
+    return expect(testStorage.put({}))
+      .to.be.rejectedWith(testStorage.InvalidArgumentError);
   });
 
-  it('should throw an InvalidArgumentError if path is an array', () => {
-
-    expect(() => {
-      return storage.put([]);
-    }).to.throw(storage.InvalidArgumentError);
+  it('should be.rejectedWith an InvalidArgumentError if path is an array', () => {
+    return expect(testStorage.put([]))
+      .to.be.rejectedWith(testStorage.InvalidArgumentError);
   });
 
-  it('should throw an InvalidArgumentError if path is null', () => {
-
-    expect(() => {
-      return storage.put(null);
-    }).to.throw(storage.InvalidArgumentError);
+  it('should be.rejectedWith an InvalidArgumentError if path is null', () => {
+    return expect(testStorage.put(null))
+      .to.be.rejectedWith(testStorage.InvalidArgumentError);
   });
 
-  it('should throw an InvalidArgumentError if path is undefined', () => {
-
-    expect(() => {
-      return storage.put(undefined);
-    }).to.throw(storage.InvalidArgumentError);
+  it('should be.rejectedWith an InvalidArgumentError if path is undefined', () => {
+    return expect(testStorage.put(undefined))
+      .to.be.rejectedWith(testStorage.InvalidArgumentError);
   });
 });

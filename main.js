@@ -1,128 +1,124 @@
 'use strict';
 
 const crypto = require('crypto');
-const AWS = require('aws-sdk');
 const _ = require('lodash');
-const createError = require('custom-error-generator');
+const s3 = require('./lib/s3');
+const errors = require('./lib/errors');
 
-const StorageError = createError('StorageError');
-const InvalidArgumentError = createError('InvalidArgumentError');
+const StorageError = errors.StorageError;
+const InvalidArgumentError = errors.InvalidArgumentError;
 
-function storageProvider(options) {
+/**
+ * Factory that returns a Storage
+ *
+ * @param options - S3 options
+ */
+function create(options) {
+  return new Storage(options);
+}
 
-  validateOptions(options);
+/**
+ * Storage constructor
+ *
+ * @param {object} options - S3 options
+ * @constructor
+ */
+function Storage(options) {
+  this._validateOptions(options);
+  this._s3 = s3.create(options);
+  this._bucket = options.bucket;
+  this._acl = options.acl ? options.acl : 'public-read';
+}
 
-  const s3 = new AWS.S3({
-    accessKeyId: options.accessKeyId,
-    secretAccessKey: options.secretAccessKey,
-    region: options.region
-  });
+/**
+ * Stores a buffer as object in storage
+ *
+ * @param {Buffer} buffer - Buffer
+ * @param {String} path - Path
+ * @param {String} mimeType - MIME type
+ * @returns {Promise}
+ */
 
-  const bucket = options.bucket;
-  const acl = options.acl ? options.acl : 'public-read';
-  const uploadAsync = Bluebird.promisify(s3.upload, s3);
-  const deleteAsync = Bluebird.promisify(s3.deleteObjects, s3);
-
-  /**
-   * Stores a buffer as object in storage
-   *
-   * @param {Buffer }buffer
-   * @param {String} path
-   * @param {String} mimeType
-   * @param {Function} [callback]
-   * @returns {Promise}
-   */
-
-  function put(buffer, path, mimeType, callback) {
-
+Storage.prototype.put = function (buffer, path, mimeType) {
+  return new Promise((resolve, reject) => {
     if (!Buffer.isBuffer(buffer)) {
-      throw new InvalidArgumentError('No buffer provided');
+      return reject(new InvalidArgumentError('No buffer provided'));
     }
 
     if (!_.isString(path)) {
-      throw new InvalidArgumentError('No valid path provided');
+      return reject(new InvalidArgumentError('No valid path provided'));
     }
 
     if (!_.isString(mimeType)) {
-      throw new InvalidArgumentError('No valid mime type provided');
+      return reject(new InvalidArgumentError('No valid mime type provided'));
     }
 
     // Calculate MD5 checksum of buffer
     // Amazon S3 will cross-check and return an error
     // if checksum of stored file does not match
-    let bufferHash = crypto.createHash('md5');
+    const bufferHash = crypto.createHash('md5');
     bufferHash.update(buffer);
 
     const bufferHashBase64 = bufferHash.digest('base64');
     const eTag = '"' + new Buffer(bufferHashBase64, 'base64').toString('hex') + '"';
 
     const params = {
-      Bucket: bucket,
+      Bucket: this._bucket,
       Key: path,
       Body: buffer,
-      ACL: acl,
+      ACL: this._acl,
       ContentType: mimeType,
       ContentMD5: bufferHashBase64
     };
 
-    return uploadAsync(params)
-      .then((data) => {
+    this._s3.put(params, (err, res) => {
+      if (err) {
+        return reject(err);
+      }
 
-        if (data.ETag !== eTag) {
-          throw new StorageError('ETag does not match buffer MD5 hash');
-        }
+      if (res.ETag !== eTag) {
+        return reject(new StorageError('ETag does not match buffer MD5 hash'));
+      }
 
-        if (!_.isString(data.Location)) {
-          throw new StorageError('S3 did not return storage Url');
-        }
+      if (!_.isString(res.Location)) {
+        return reject(new StorageError('S3 did not return storage URL'));
+      }
 
-        return {
-          eTag: data.ETag,
-          url: data.Location
-        };
-      })
-      .nodeify(callback);
-  }
+      return resolve({
+        eTag: res.ETag,
+        url: res.Location
+      });
+    });
+  });
+};
 
-  /**
-   * Removes one or several objects from storage
-   *
-   * @param {String|Array<String>} paths
-   * @param {Function} [callback]
-   * @returns {Promise}
-   */
+/**
+ * Removes one or several objects from storage
+ *
+ * @param {String|Array<String>} paths - Paths
+ * @returns {Promise}
+ */
 
-  function remove(paths, callback) {
-
-    let objects = [];
+Storage.prototype.remove = function (paths) {
+  return new Promise((resolve, reject) => {
+    const objects = [];
 
     if (_.isString(paths)) {
-
-      // Build object and add to list
-      objects.push({Key: paths});
-
-    } else if (_.isArray(paths) && paths.length) {
-
-      // Ensure uniqueness
-      paths = _.uniq(paths);
-
-      // Iterate through paths
-      // and ensure that they are strings
-      paths.forEach((path) => {
-
+      objects.push({ Key: paths });
+    } else if (_.isArray(paths)) {
+      _.uniq(paths).forEach((path) => {
         if (!_.isString(path)) {
-          throw new InvalidArgumentError('No valid path provided');
+          return reject(new InvalidArgumentError('No valid paths provided'));
         }
 
-        // Build object and add to list
-        objects.push({Key: path});
+        objects.push({ Key: path });
       });
     } else {
-      throw new InvalidArgumentError('No valid path provided');
+      return reject(new InvalidArgumentError('No valid paths provided'));
     }
 
     const params = {
-      Bucket: bucket,
+      Bucket: this._bucket,
       Delete: {
         Objects: objects,
         Quiet: false
@@ -130,47 +126,40 @@ function storageProvider(options) {
       RequestPayer: 'requester'
     };
 
-    return deleteAsync(params)
-      .then((data) => {
+    this._s3.deleteObjects(params, (err, res) => {
+      if (err) {
+        return reject(err);
+      }
 
-        if (!data || !data.Deleted) {
-          throw new StorageError('S3 did not return valid deletion result');
-        }
+      if (!res || !res.Deleted) {
+        return reject(new StorageError('S3 did not return valid deletion result'));
+      }
 
-        const paths = _.map(data.Deleted, (item) => {
-          return item.Key;
-        });
+      const deletedPaths = _.map(res.Deleted, (item) => {
+        return item.Key;
+      });
 
-        return {paths: paths};
-      })
-      .nodeify(callback);
+      return resolve({ paths: deletedPaths });
+    });
+  });
+};
+
+Storage.prototype._validateOptions = function (options) {
+  if (!options.accessKeyId) {
+    throw new InvalidArgumentError('Missing AWS accessKeyId');
   }
 
-  function validateOptions(options) {
-
-    if (!options.accessKeyId) {
-      throw new InvalidArgumentError('Missing AWS accessKeyId');
-    }
-
-    if (!options.secretAccessKey) {
-      throw new InvalidArgumentError('Missing AWS secretAccessKey');
-    }
-
-    if (!options.region) {
-      throw new InvalidArgumentError('Missing AWS S3 region');
-    }
-
-    if (!options.bucket) {
-      throw new InvalidArgumentError('Missing AWS S3 bucket');
-    }
+  if (!options.secretAccessKey) {
+    throw new InvalidArgumentError('Missing AWS secretAccessKey');
   }
 
-  return {
-    put: put,
-    remove: remove,
-    InvalidArgumentError: InvalidArgumentError,
-    StorageError: StorageError
-  };
-}
+  if (!options.region) {
+    throw new InvalidArgumentError('Missing AWS S3 region');
+  }
 
-module.exports = storageProvider;
+  if (!options.bucket) {
+    throw new InvalidArgumentError('Missing AWS S3 bucket');
+  }
+};
+
+module.exports.create = create;
