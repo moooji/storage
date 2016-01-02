@@ -25,6 +25,7 @@ function storageProvider(options) {
 
   /**
    * Stores a buffer as object in storage
+   *
    * @param {Buffer }buffer
    * @param {String} path
    * @param {String} mimeType
@@ -85,6 +86,7 @@ function storageProvider(options) {
 
   /**
    * Removes one or several objects from storage
+   *
    * @param {String|Array<String>} paths
    * @param {Function} [callback]
    * @returns {Promise}

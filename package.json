@@ -22,7 +22,7 @@
   ],
   "email": "info@moooji.com",
   "author": "Steffen Strätz",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/moooji/storage/issues"
   },
