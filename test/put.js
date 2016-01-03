@@ -3,6 +3,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
+const md5 = require('../lib/md5');
 const storage = require('../main');
 
 const expect = chai.expect;
@@ -14,6 +15,16 @@ describe('Put', () => {
   const buffer = new Buffer('data');
   const path = 'folder/image.jpg';
   const mimeType = 'image/jpeg';
+  const bucket = 'bucket';
+  const checksum = md5(buffer);
+  const expectedParams = {
+    ACL: 'public-read',
+    Body: buffer,
+    Bucket: bucket,
+    ContentMD5: checksum.base64,
+    ContentType: mimeType,
+    Key: path
+  };
 
   before(() => {
     s3 = sinon.mock();
@@ -21,10 +32,10 @@ describe('Put', () => {
 
     testStorage = storage.create({
       s3,
+      bucket,
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
-      region: 'region',
-      bucket: 'bucket'
+      region: 'region'
     });
   });
 
@@ -51,10 +62,36 @@ describe('Put', () => {
       .then(() => sinon.assert.notCalled(s3.put));
   });
 
+  it('should be rejected with an StorageError if eTags do not match', () => {
+    s3.put = sinon.stub().yieldsAsync(null, { ETag: 'abc', Location: 'location' });
+
+    return expect(testStorage.put(buffer, path, mimeType))
+      .to.be.rejectedWith(testStorage.StorageError)
+      .then(() => {
+        sinon.assert.calledOnce(s3.put);
+        sinon.assert.calledWith(s3.put, expectedParams);
+      });
+  });
+
+  it('should be rejected with an StorageError if invalid location is returned', () => {
+    s3.put = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: null });
+
+    return expect(testStorage.put(buffer, path, mimeType))
+      .to.be.rejectedWith(testStorage.StorageError)
+      .then(() => {
+        sinon.assert.calledOnce(s3.put);
+        sinon.assert.calledWith(s3.put, expectedParams);
+      });
+  });
+
   it('should store a buffer', () => {
+    s3.put = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: 'location' });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.eventually.fulfilled
-      .then(() => sinon.assert.calledOnce(s3.put));
+      .then(() => {
+        sinon.assert.calledOnce(s3.put);
+        sinon.assert.calledWith(s3.put, expectedParams);
+      });
   });
 });
