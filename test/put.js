@@ -28,7 +28,7 @@ describe('Put', () => {
 
   before(() => {
     s3 = sinon.mock();
-    s3.putObject = sinon.stub().yieldsAsync(null, { ETag: '123', Location: 'loc' });
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: '123', Location: 'loc' });
 
     testStorage = storage.create({
       s3,
@@ -47,51 +47,51 @@ describe('Put', () => {
   it('should be rejected with an InvalidArgumentError if buffer is invalid', () => {
     return expect(testStorage.put(123, path, mimeType))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
-      .then(() => sinon.assert.notCalled(s3.putObject));
+      .then(() => sinon.assert.notCalled(s3.upload));
   });
 
   it('should be rejected with an InvalidArgumentError if path is invalid', () => {
     return expect(testStorage.put(buffer, 123, mimeType))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
-      .then(() => sinon.assert.notCalled(s3.putObject));
+      .then(() => sinon.assert.notCalled(s3.upload));
   });
 
   it('should be rejected with an InvalidArgumentError if MIME type is invalid', () => {
     return expect(testStorage.put(buffer, path, 123))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
-      .then(() => sinon.assert.notCalled(s3.putObject));
+      .then(() => sinon.assert.notCalled(s3.upload));
   });
 
   it('should be rejected with an StorageError if eTags do not match', () => {
-    s3.putObject = sinon.stub().yieldsAsync(null, { ETag: 'abc', Location: 'location' });
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: 'abc', Location: 'location' });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.rejectedWith(testStorage.StorageError)
       .then(() => {
-        sinon.assert.calledOnce(s3.putObject);
-        sinon.assert.calledWith(s3.putObject, expectedParams);
+        sinon.assert.calledOnce(s3.upload);
+        sinon.assert.calledWith(s3.upload, expectedParams);
       });
   });
 
   it('should be rejected with an StorageError if invalid location is returned', () => {
-    s3.putObject = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: null });
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: null });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.rejectedWith(testStorage.StorageError)
       .then(() => {
-        sinon.assert.calledOnce(s3.putObject);
-        sinon.assert.calledWith(s3.putObject, expectedParams);
+        sinon.assert.calledOnce(s3.upload);
+        sinon.assert.calledWith(s3.upload, expectedParams);
       });
   });
 
   it('should store a buffer', () => {
-    s3.putObject = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: 'location' });
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: 'location' });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.eventually.fulfilled
       .then(() => {
-        sinon.assert.calledOnce(s3.putObject);
-        sinon.assert.calledWith(s3.putObject, expectedParams);
+        sinon.assert.calledOnce(s3.upload);
+        sinon.assert.calledWith(s3.upload, expectedParams);
       });
   });
 });
