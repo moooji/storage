@@ -11,12 +11,16 @@ chai.use(chaiAsPromised);
 describe('Put', () => {
   let s3 = null;
   let testStorage = null;
+  const buffer = new Buffer('data');
+  const path = 'folder/image.jpg';
+  const mimeType = 'image/jpeg';
 
   before(() => {
     s3 = sinon.mock();
     s3.put = sinon.stub().yieldsAsync(null, { ETag: '123', Location: 'loc' });
 
     testStorage = storage.create({
+      s3,
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       region: 'region',
@@ -29,33 +33,28 @@ describe('Put', () => {
     testStorage = null;
   });
 
-  it('should be rejected with an InvalidArgumentError if path is a number', () => {
-    return expect(testStorage.put(123))
+  it('should be rejected with an InvalidArgumentError if buffer is invalid', () => {
+    return expect(testStorage.put(123, path, mimeType))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
       .then(() => sinon.assert.notCalled(s3.put));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is an object', () => {
-    return expect(testStorage.put({}))
+  it('should be rejected with an InvalidArgumentError if path is invalid', () => {
+    return expect(testStorage.put(buffer, 123, mimeType))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
       .then(() => sinon.assert.notCalled(s3.put));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is an array', () => {
-    return expect(testStorage.put([]))
+  it('should be rejected with an InvalidArgumentError if MIME type is invalid', () => {
+    return expect(testStorage.put(buffer, path, 123))
       .to.be.rejectedWith(testStorage.InvalidArgumentError)
       .then(() => sinon.assert.notCalled(s3.put));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is null', () => {
-    return expect(testStorage.put(null))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
-      .then(() => sinon.assert.notCalled(s3.put));
-  });
+  it('should store a buffer', () => {
 
-  it('should be rejected with an InvalidArgumentError if path is undefined', () => {
-    return expect(testStorage.put(undefined))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
-      .then(() => sinon.assert.notCalled(s3.put));
+    return expect(testStorage.put(buffer, path, mimeType))
+      .to.be.eventually.fulfilled
+      .then(() => sinon.assert.calledOnce(s3.put));
   });
 });
