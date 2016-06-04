@@ -23,7 +23,7 @@ describe('Put', () => {
     Bucket: bucket,
     ContentMD5: checksum.base64,
     ContentType: mimeType,
-    Key: path
+    Key: path,
   };
 
   before(() => {
@@ -35,7 +35,7 @@ describe('Put', () => {
       bucket,
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
-      region: 'region'
+      region: 'region',
     });
   });
 

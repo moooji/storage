@@ -22,18 +22,18 @@ describe('Remove', () => {
     Bucket: bucket,
     Delete: {
       Objects: object,
-      Quiet: false
+      Quiet: false,
     },
-    RequestPayer: 'requester'
+    RequestPayer: 'requester',
   };
 
   const expectedParamsPaths = {
     Bucket: bucket,
     Delete: {
       Objects: objects,
-      Quiet: false
+      Quiet: false,
     },
-    RequestPayer: 'requester'
+    RequestPayer: 'requester',
   };
 
   before(() => {
@@ -45,7 +45,7 @@ describe('Remove', () => {
       bucket,
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
-      region: 'region'
+      region: 'region',
     });
   });
 

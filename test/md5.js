@@ -16,7 +16,7 @@ describe('MD5', () => {
     const buffer = new Buffer('data');
     const expectedResult = {
       base64: 'jXd/OF09/siBXSD3SWAm3A==',
-      eTag: '"8d777f385d3dfec8815d20f7496026dc"'
+      eTag: '"8d777f385d3dfec8815d20f7496026dc"',
     };
 
     return expect(md5(buffer))

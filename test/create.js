@@ -14,7 +14,7 @@ describe('Create', () => {
       accessKeyId: 123,
       secretAccessKey: 'secretAccessKey',
       region: 'region',
-      bucket: 'bucket'
+      bucket: 'bucket',
     };
 
     return expect(() => storageProvider.create(options))
@@ -26,7 +26,7 @@ describe('Create', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 123,
       region: 'region',
-      bucket: 'bucket'
+      bucket: 'bucket',
     };
 
     return expect(() => storageProvider.create(options))
@@ -38,7 +38,7 @@ describe('Create', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       region: 123,
-      bucket: 'bucket'
+      bucket: 'bucket',
     };
 
     return expect(() => storageProvider.create(options))
@@ -50,7 +50,7 @@ describe('Create', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       region: 'region',
-      bucket: 123
+      bucket: 123,
     };
 
     return expect(() => storageProvider.create(options))
@@ -62,7 +62,7 @@ describe('Create', () => {
       accessKeyId: 'accessKeyId',
       secretAccessKey: 'secretAccessKey',
       region: 'region',
-      bucket: 'bucket'
+      bucket: 'bucket',
     };
 
     return expect(storageProvider.create(options))
