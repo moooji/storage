@@ -4,7 +4,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const md5 = require('../lib/md5');
-const storage = require('../main');
+const storage = require('../index');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -44,21 +44,21 @@ describe('Put', () => {
     testStorage = null;
   });
 
-  it('should be rejected with an InvalidArgumentError if buffer is invalid', () => {
+  it('should be rejected with an TypeError if buffer is invalid', () => {
     return expect(testStorage.put(123, path, mimeType))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.upload));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is invalid', () => {
+  it('should be rejected with an TypeError if path is invalid', () => {
     return expect(testStorage.put(buffer, 123, mimeType))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.upload));
   });
 
-  it('should be rejected with an InvalidArgumentError if MIME type is invalid', () => {
+  it('should be rejected with an TypeError if MIME type is invalid', () => {
     return expect(testStorage.put(buffer, path, 123))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.upload));
   });
 

@@ -7,9 +7,9 @@ const errors = require('../lib/errors');
 const expect = chai.expect;
 
 describe('MD5', () => {
-  it('should throw InvalidArgumentError buffer is invalid', () => {
+  it('should throw TypeError buffer is invalid', () => {
     return expect(() => md5(123))
-      .to.throw(errors.InvalidArgumentError);
+      .to.throw(errors.TypeError);
   });
 
   it('should create MD5 base64 and eTag for a buffer', () => {

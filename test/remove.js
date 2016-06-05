@@ -3,7 +3,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
-const storage = require('../main');
+const storage = require('../index');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -54,27 +54,27 @@ describe('Remove', () => {
     testStorage = null;
   });
 
-  it('should be rejected with an InvalidArgumentError if path is a number', () => {
+  it('should be rejected with an TypeError if path is a number', () => {
     return expect(testStorage.remove(123))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.deleteObjects));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is an object', () => {
+  it('should be rejected with an TypeError if path is an object', () => {
     return expect(testStorage.remove({}))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.deleteObjects));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is null', () => {
+  it('should be rejected with an TypeError if path is null', () => {
     return expect(testStorage.remove(null))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.deleteObjects));
   });
 
-  it('should be rejected with an InvalidArgumentError if path is undefined', () => {
+  it('should be rejected with an TypeError if path is undefined', () => {
     return expect(testStorage.remove(undefined))
-      .to.be.rejectedWith(testStorage.InvalidArgumentError)
+      .to.be.rejectedWith(testStorage.TypeError)
       .then(() => sinon.assert.notCalled(s3.deleteObjects));
   });
 
