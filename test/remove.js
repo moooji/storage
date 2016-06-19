@@ -15,13 +15,13 @@ describe('Remove', () => {
   const pathA = 'image1.jpg';
   const pathB = 'image2.jpg';
   const paths = [pathA, pathB];
-  const object = { Key: pathA };
-  const objects = [{ Key: pathA }, { Key: pathB }];
+  const deletedObject = [{ Key: pathA }];
+  const deletedObjects = [{ Key: pathA }, { Key: pathB }];
 
   const expectedParamsPath = {
     Bucket: bucket,
     Delete: {
-      Objects: object,
+      Objects: deletedObject,
       Quiet: false,
     },
     RequestPayer: 'requester',
@@ -30,7 +30,7 @@ describe('Remove', () => {
   const expectedParamsPaths = {
     Bucket: bucket,
     Delete: {
-      Objects: objects,
+      Objects: deletedObjects,
       Quiet: false,
     },
     RequestPayer: 'requester',
@@ -38,7 +38,7 @@ describe('Remove', () => {
 
   before(() => {
     s3 = sinon.mock();
-    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: objects });
+    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: deletedObjects });
 
     testStorage = storage.create({
       s3,
@@ -79,7 +79,7 @@ describe('Remove', () => {
   });
 
   it('should remove an object', () => {
-    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: object });
+    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: deletedObject });
 
     return expect(testStorage.remove(pathA))
       .to.be.eventually.fulfilled
@@ -89,8 +89,8 @@ describe('Remove', () => {
       });
   });
 
-  it('should remove several objects', () => {
-    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: objects });
+  it('should remove objects', () => {
+    s3.deleteObjects = sinon.stub().yieldsAsync(null, { Deleted: deletedObjects });
 
     return expect(testStorage.remove(paths))
       .to.be.eventually.fulfilled

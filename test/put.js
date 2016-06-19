@@ -63,7 +63,8 @@ describe('Put', () => {
   });
 
   it('should be rejected with an StorageError if eTags do not match', () => {
-    s3.upload = sinon.stub().yieldsAsync(null, { ETag: 'abc', Location: 'location' });
+    const location = 'https://s3.com/1.jpg';
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: 'abc', Location: location });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.rejectedWith(testStorage.StorageError)
@@ -74,7 +75,8 @@ describe('Put', () => {
   });
 
   it('should be rejected with an StorageError if invalid location is returned', () => {
-    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: null });
+    const location = 123;
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: location });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.rejectedWith(testStorage.StorageError)
@@ -85,7 +87,8 @@ describe('Put', () => {
   });
 
   it('should store a buffer', () => {
-    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: 'location' });
+    const location = 'https://s3.com/1.jpg';
+    s3.upload = sinon.stub().yieldsAsync(null, { ETag: checksum.eTag, Location: location });
 
     return expect(testStorage.put(buffer, path, mimeType))
       .to.be.eventually.fulfilled
