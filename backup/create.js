@@ -1,8 +1,8 @@
 'use strict';
 
 const chai = require('chai');
-const storageProvider = require('../index');
-const Storage = require('../lib/storage');
+const createStorage = require('../index');
+const Storage = require('../lib/s3');
 
 const expect = chai.expect;
 
@@ -15,7 +15,7 @@ describe('Create', () => {
       bucket: 'bucket',
     };
 
-    expect(() => storageProvider.create(options)).to.throw(TypeError);
+    expect(() => createStorage({ s3: options })).to.throw(TypeError);
   });
 
   it('should throw TypeError if AWS Secret Access Key invalid', () => {
@@ -26,8 +26,8 @@ describe('Create', () => {
       bucket: 'bucket',
     };
 
-    expect(() => storageProvider.create(options))
-      .to.throw(storageProvider.TypeError);
+    expect(() => createStorage({ s3: options }))
+      .to.throw(TypeError);
   });
 
   it('should throw TypeError if AWS region is invalid', () => {
@@ -38,8 +38,8 @@ describe('Create', () => {
       bucket: 'bucket',
     };
 
-    expect(() => storageProvider.create(options))
-      .to.throw(storageProvider.TypeError);
+    expect(() => createStorage({ s3: options }))
+      .to.throw(TypeError);
   });
 
   it('should throw TypeError if AWS S3 bucket is invalid', () => {
@@ -50,8 +50,8 @@ describe('Create', () => {
       bucket: 123,
     };
 
-    expect(() => storageProvider.create(options))
-      .to.throw(storageProvider.TypeError);
+    expect(() => createStorage({ s3: options }))
+      .to.throw(TypeError);
   });
 
   it('should create a storage', () => {
@@ -62,7 +62,7 @@ describe('Create', () => {
       bucket: 'bucket',
     };
 
-    expect(storageProvider.create(options))
+    expect(createStorage({ s3: options }))
       .to.be.an.instanceof(Storage);
   });
 });

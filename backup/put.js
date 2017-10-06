@@ -2,8 +2,8 @@
 
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const hash = require('@moooji/hash');
 const sinon = require('sinon');
-const md5 = require('../lib/md5');
 const storage = require('../index');
 
 const expect = chai.expect;
@@ -16,7 +16,7 @@ describe('Put', () => {
   const path = 'folder/image.jpg';
   const mimeType = 'image/jpeg';
   const bucket = 'bucket';
-  const checksum = md5(buffer);
+  const checksum = hash(buffer, 'base64');
   const expectedParams = {
     ACL: 'public-read',
     Body: buffer,

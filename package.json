@@ -1,7 +1,7 @@
 {
   "name": "@moooji/storage",
-  "version": "0.10.30",
-  "description": "Storage provider based on Amazon S3",
+  "version": "2.0.0",
+  "description": "Storage provider (AWS S3, Google Cloud Storage)",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
@@ -22,26 +22,28 @@
   ],
   "email": "info@moooji.com",
   "author": "Steffen Strätz",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "bugs": {
     "url": "https://github.com/moooji/storage/issues"
   },
   "homepage": "https://github.com/moooji/storage",
   "dependencies": {
+    "@moooji/hash": "^1.0.1",
     "aws-sdk": "^2.4.0",
     "custom-error-generator": "^7.0.0",
+    "joi": "^11.1.1",
     "valido": "^2.0.10"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "chai-as-promised": "^5.3.0",
-    "eslint": "^2.13.0",
-    "eslint-config-airbnb": "^9.0.1",
-    "eslint-plugin-import": "^1.8.1",
-    "eslint-plugin-jsx-a11y": "^1.5.3",
-    "eslint-plugin-react": "^5.2.2",
-    "mocha": "^2.5.3",
-    "mocha-eslint": "^2.1.1",
-    "sinon": "^1.17.4"
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^4.8.0",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^6.0.2",
+    "eslint-plugin-react": "^7.4.0",
+    "mocha": "^4.0.1",
+    "mocha-eslint": "^4.1.0",
+    "sinon": "^4.0.1"
   }
 }
