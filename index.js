@@ -1,10 +1,21 @@
 'use strict';
 
+const Joi = require('joi');
 const is = require('valido');
-const createError = require('custom-error-generator');
-
 const S3 = require('./lib/s3');
 const GCS = require('./lib/gcs');
+
+const optionsSchema = Joi.alternatives().try(
+  Joi.object().keys({
+    s3: Joi.object().required(),
+  }),
+  Joi.object().keys({
+    gcs: Joi.object().required(),
+  }),
+  Joi.object().keys({
+    client: Joi.object().required()
+  }),
+).required();
 
 /**
  * Factory that returns a Storage instance
@@ -17,13 +28,7 @@ function create(options) {
 }
 
 function Storage(options) {  
-  if (!options) {
-    throw new TypeError('Invalid Options');
-  }
-
-  if (options.s3 && options.gcs) {
-    throw new TypeError('S3 and GCS cannot be used together');
-  }
+  Joi.assert(options, optionsSchema);
 
   if (options.client) {
     this.client = options.client;
@@ -33,24 +38,24 @@ function Storage(options) {
     this.client = new GCS(options.gcs);
   }
 
-  this.StorageError = createError('StorageError');
+  this.StorageError = this.client.StorageError;
 }
 
 /**
  * Stores a buffer as object in Storage
  *
- * @param {Buffer} buffer - Buffer
  * @param {string} key - Key
+ * @param {Buffer} buffer - Buffer
  * @param {string} mimeType - MIME type
  * @returns {Promise}
  */
-Storage.prototype.put = async function put(buffer, key, mimeType) {
-  if (!is.buffer(buffer)) {
-    throw new TypeError('No buffer provided');
-  }
-
+Storage.prototype.save = async function save(key, buffer, mimeType) {
   if (!is.string(key)) {
     throw new TypeError('No valid key provided');
+  }
+
+  if (!is.buffer(buffer)) {
+    throw new TypeError('No buffer provided');
   }
 
   if (!is.string(mimeType)) {
@@ -58,7 +63,7 @@ Storage.prototype.put = async function put(buffer, key, mimeType) {
   }
 
   try {
-    await this.client.put(buffer, key, mimeType);
+    await this.client.save(key, buffer, mimeType);
   } catch (err) {
     throw new this.StorageError(`Could not store object ${key} - ${err.message}`);
   }
