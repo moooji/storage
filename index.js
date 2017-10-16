@@ -49,7 +49,7 @@ function Storage(options) {
  * @param {string} mimeType - MIME type
  * @returns {Promise}
  */
-Storage.prototype.save = async function save(key, buffer, mimeType) {
+Storage.prototype.save = async function save(key, buffer, mimeType, isPublic = false) {
   if (!is.string(key)) {
     throw new TypeError('No valid key provided');
   }
@@ -63,9 +63,9 @@ Storage.prototype.save = async function save(key, buffer, mimeType) {
   }
 
   try {
-    await this.client.save(key, buffer, mimeType);
+    await this.client.save(key, buffer, mimeType, isPublic);
   } catch (err) {
-    throw new this.StorageError(`Could not store object ${key} - ${err.message}`);
+    throw new this.StorageError(`Could not store object [${key}] - ${err.message}`);
   }
 }
 
