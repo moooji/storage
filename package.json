@@ -7,7 +7,7 @@
     "test": "mocha",
     "transpile": "babel src --presets latest --retain-lines --out-dir dist",
     "deploy": "npm test && npm run transpile && npm run generate-docs && npm publish",
-    "generate-docs": "doxdox './*.js' --layout markdown --output README.md"
+    "generate-docs": "doxdox './src/*.js' --layout markdown --output README.md"
   },
   "engines": {
     "node": ">=8.6.0"
