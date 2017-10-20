@@ -1,11 +1,11 @@
-'use strict';var crypto = require('crypto');
-var Joi = require('joi');
-var is = require('valido');
-var AWS = require('aws-sdk');
-var hash = require('@moooji/hash');
-var createError = require('custom-error-generator');
+'use strict';const crypto = require('crypto');
+const Joi = require('joi');
+const is = require('valido');
+const AWS = require('aws-sdk');
+const hash = require('@moooji/hash');
+const createError = require('custom-error-generator');
 
-var optionsSchema = Joi.object().keys({
+const optionsSchema = Joi.object().keys({
   accessKeyId: Joi.string().required(),
   secretAccessKey: Joi.string().required(),
   bucket: Joi.string().required(),
@@ -20,18 +20,18 @@ required();
              * @constructor
              */
 function StorageClient(options) {
-  Joi.assert(options, optionsSchema);var
+  Joi.assert(options, optionsSchema);
 
-
-  region =
-
-
-
-
-  options.region,accessKeyId = options.accessKeyId,secretAccessKey = options.secretAccessKey,bucket = options.bucket,client = options.client;
+  const {
+    region,
+    accessKeyId,
+    secretAccessKey,
+    bucket,
+    client } =
+  options;
 
   this.bucket = bucket;
-  this.client = client || new AWS.S3({ region: region, accessKeyId: accessKeyId, secretAccessKey: secretAccessKey });
+  this.client = client || new AWS.S3({ region, accessKeyId, secretAccessKey });
   this.StorageError = createError('StorageError');
 }
 
@@ -43,12 +43,12 @@ function StorageClient(options) {
    * @param {string} mimeType - MIME type
    * @returns {Promise}
    */
-StorageClient.prototype.save = function save(key, buffer, mimeType) {var _this = this;var isPublic = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-  return new Promise(function (resolve, reject) {
-    var checksum = _this.getChecksum(buffer);
+StorageClient.prototype.save = function save(key, buffer, mimeType, isPublic = false) {
+  return new Promise((resolve, reject) => {
+    const checksum = this.getChecksum(buffer);
 
-    var params = {
-      Bucket: _this.bucket,
+    const params = {
+      Bucket: this.bucket,
       Key: key,
       Body: buffer,
       ACL: isPublic ? 'public-read' : 'private',
@@ -56,7 +56,7 @@ StorageClient.prototype.save = function save(key, buffer, mimeType) {var _this =
       ContentMD5: hash(buffer, "base64") };
 
 
-    return _this.client.upload(params, function (err, res) {
+    return this.client.upload(params, (err, res) => {
       if (err) {
         return reject(err);
       }
@@ -72,14 +72,14 @@ StorageClient.prototype.save = function save(key, buffer, mimeType) {var _this =
     * @param {string|Array<String>} keys - Keys
     * @returns {Promise}
     */
-StorageClient.prototype.remove = function remove(keys) {var _this2 = this;
-  return new Promise(function (resolve, reject) {
-    var objects = keys.map(function (key) {
+StorageClient.prototype.remove = function remove(keys) {
+  return new Promise((resolve, reject) => {
+    const objects = keys.map(key => {
       return { Key: key };
     });
 
-    var params = {
-      Bucket: _this2.bucket,
+    const params = {
+      Bucket: this.bucket,
       Delete: {
         Objects: objects,
         Quiet: false },
@@ -87,16 +87,16 @@ StorageClient.prototype.remove = function remove(keys) {var _this2 = this;
       RequestPayer: 'requester' };
 
 
-    return _this2.client.deleteObjects(params, function (err, res) {
+    return this.client.deleteObjects(params, (err, res) => {
       if (err) {
         return reject(err);
       }
 
       if (!res || !res.Deleted) {
-        return reject(new _this2.StorageError('S3 did not return valid deletion result'));
+        return reject(new this.StorageError('S3 did not return valid deletion result'));
       }
 
-      var deletedPaths = res.Deleted.map(function (item) {return item.Key;});
+      const deletedPaths = res.Deleted.map(item => item.Key);
       return resolve({ paths: deletedPaths });
     });
   });

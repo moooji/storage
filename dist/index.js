@@ -1,11 +1,11 @@
-'use strict';var _regenerator = require('babel-runtime/regenerator');var _regenerator2 = _interopRequireDefault(_regenerator);var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);function _interopRequireDefault(obj) {return obj && obj.__esModule ? obj : { default: obj };}
+'use strict';function _asyncToGenerator(fn) {return function () {var gen = fn.apply(this, arguments);return new Promise(function (resolve, reject) {function step(key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {return Promise.resolve(value).then(function (value) {step("next", value);}, function (err) {step("throw", err);});}}return step("next");});};}
 
-var Joi = require('joi');
-var is = require('valido');
-var S3 = require('./lib/s3');
-var GCS = require('./lib/gcs');
+const Joi = require('joi');
+const is = require('valido');
+const S3 = require('./lib/s3');
+const GCS = require('./lib/gcs');
 
-var optionsSchema = Joi.alternatives().try(
+const optionsSchema = Joi.alternatives().try(
 Joi.object().keys({
   s3: Joi.object().required() }),
 
@@ -49,50 +49,50 @@ function Storage(options) {
    * @param {string} mimeType - MIME type
    * @returns {Promise}
    */
-Storage.prototype.save = function () {var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(key, buffer, mimeType) {var isPublic = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;return _regenerator2.default.wrap(function _callee$(_context) {while (1) {switch (_context.prev = _context.next) {case 0:if (
-            is.string(key)) {_context.next = 2;break;}throw (
-              new TypeError('No valid key provided'));case 2:if (
+Storage.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, buffer, mimeType, isPublic = false) {
+    if (!is.string(key)) {
+      throw new TypeError('No valid key provided');
+    }
 
+    if (!is.buffer(buffer)) {
+      throw new TypeError('No buffer provided');
+    }
 
-            is.buffer(buffer)) {_context.next = 4;break;}throw (
-              new TypeError('No buffer provided'));case 4:if (
+    if (!is.string(mimeType)) {
+      throw new TypeError('No valid mime type provided');
+    }
 
-
-            is.string(mimeType)) {_context.next = 6;break;}throw (
-              new TypeError('No valid mime type provided'));case 6:_context.prev = 6;_context.next = 9;return (
-
-
-
-              this.client.save(key, buffer, mimeType, isPublic));case 9:_context.next = 14;break;case 11:_context.prev = 11;_context.t0 = _context['catch'](6);throw (
-
-              new this.StorageError('Could not store object [' + key + '] - ' + _context.t0.message));case 14:case 'end':return _context.stop();}}}, _callee, this, [[6, 11]]);}));function save(_x, _x2, _x3) {return _ref.apply(this, arguments);}return save;}();
-
-
+    try {
+      yield this.client.save(key, buffer, mimeType, isPublic);
+    } catch (err) {
+      throw new this.StorageError(`Could not store object [${key}] - ${err.message}`);
+    }
+  });function save(_x, _x2, _x3) {return _ref.apply(this, arguments);}return save;})();
 
 /**
-                                                                                                                                                                                                                                                                      * Removes one or several objects from Storage
-                                                                                                                                                                                                                                                                      *
-                                                                                                                                                                                                                                                                      * @param {string|Array<string>} key - Key(s)
-                                                                                                                                                                                                                                                                      * @returns {Promise}
-                                                                                                                                                                                                                                                                      */
-Storage.prototype.remove = function () {var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(key) {var keys;return _regenerator2.default.wrap(function _callee2$(_context2) {while (1) {switch (_context2.prev = _context2.next) {case 0:
-            keys = null;
+                                                                                         * Removes one or several objects from Storage
+                                                                                         *
+                                                                                         * @param {string|Array<string>} key - Key(s)
+                                                                                         * @returns {Promise}
+                                                                                         */
+Storage.prototype.remove = (() => {var _ref2 = _asyncToGenerator(function* (key) {
+    let keys = null;
 
-            if (is.string(key)) {
-              keys = [key];
-            } else if (is.all.string(key)) {
-              keys = key;
-            }if (
+    if (is.string(key)) {
+      keys = [key];
+    } else if (is.all.string(key)) {
+      keys = key;
+    }
 
-            keys) {_context2.next = 4;break;}throw (
-              new TypeError('No valid object keys provided'));case 4:_context2.prev = 4;_context2.next = 7;return (
+    if (!keys) {
+      throw new TypeError('No valid object keys provided');
+    }
 
-
-
-              this.client.remove(keys));case 7:_context2.next = 12;break;case 9:_context2.prev = 9;_context2.t0 = _context2['catch'](4);throw (
-
-              new this.StorageError('Could not remove object(s) ' + keys + ' - ' + _context2.t0.message));case 12:case 'end':return _context2.stop();}}}, _callee2, this, [[4, 9]]);}));function remove(_x5) {return _ref2.apply(this, arguments);}return remove;}();
-
-
+    try {
+      yield this.client.remove(keys);
+    } catch (err) {
+      throw new this.StorageError(`Could not remove object(s) ${keys} - ${err.message}`);
+    }
+  });function remove(_x4) {return _ref2.apply(this, arguments);}return remove;})();
 
 module.exports = create;
