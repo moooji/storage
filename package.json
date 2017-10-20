@@ -10,7 +10,7 @@
     "generate-docs": "doxdox './src/*.js' --layout markdown --output README.md"
   },
   "engines": {
-    "node": ">=8.6.0"
+    "node": ">=6.5.0"
   },
   "repository": {
     "type": "git",
