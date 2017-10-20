@@ -14,7 +14,7 @@ const optionsSchema = Joi.alternatives().try(
   }),
   Joi.object().keys({
     client: Joi.object().required()
-  }),
+  })
 ).required();
 
 /**

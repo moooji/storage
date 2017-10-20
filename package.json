@@ -1,6 +1,6 @@
 {
   "name": "@moooji/storage",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "generate-docs": "doxdox './*.js' --layout markdown --output README.md"
   },
   "engines": {
-    "node": ">=6.2.0"
+    "node": ">=8.6.0"
   },
   "repository": {
     "type": "git",
@@ -32,19 +32,19 @@
   "dependencies": {
     "@google-cloud/storage": "^1.4.0",
     "@moooji/hash": "^1.0.1",
-    "aws-sdk": "^2.133.0",
+    "aws-sdk": "^2.137.0",
     "custom-error-generator": "^7.0.0",
     "doxdox": "^2.0.3",
     "fast-crc32c": "^1.0.4",
-    "joi": "^13.0.0",
+    "joi": "^13.0.1",
     "valido": "^2.0.14"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "eslint": "^4.9.0",
-    "eslint-config-airbnb": "^16.0.0",
-    "eslint-plugin-import": "^2.7.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.2",
     "eslint-plugin-react": "^7.4.0",
     "mocha": "^4.0.1",
