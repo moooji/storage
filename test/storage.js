@@ -9,9 +9,9 @@ const expect = require("chai").expect;
 const chaiAsPromised = require("chai-as-promised");
 const createError = require('custom-error-generator');
 
-const createStorage = require("../index");
-const S3 = require("../lib/s3");
-const GCS = require("../lib/gcs");
+const createStorage = require("../src/index");
+const S3 = require("../src/lib/s3");
+const GCS = require("../src/lib/gcs");
 
 chai.use(chaiAsPromised);
 

@@ -1,12 +1,12 @@
 {
   "name": "@moooji/storage",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "mocha",
-    "start": "node index.js",
-    "deploy": "npm test && npm run generate-docs && npm publish",
+    "transpile": "babel src --presets latest --retain-lines --out-dir dist",
+    "deploy": "npm test && npm run transpile && npm run generate-docs && npm publish",
     "generate-docs": "doxdox './*.js' --layout markdown --output README.md"
   },
   "engines": {
@@ -40,6 +40,10 @@
     "valido": "^2.0.14"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-runtime": "^6.26.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "eslint": "^4.9.0",
