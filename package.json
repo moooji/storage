@@ -5,8 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "mocha",
+    "deploy-patch": "npm version patch && npm publish",
+    "deploy-minor": "npm version minor && npm publish",
+    "deploy-major": "npm version major && npm publish",
     "transpile": "babel src --retain-lines --out-dir dist",
-    "deploy": "npm test && npm run transpile && npm run generate-docs && npm publish",
+    "prepublish": "npm test && npm run transpile && npm run generate-docs",
     "generate-docs": "doxdox './src/*.js' --layout markdown --output README.md"
   },
   "engines": {
