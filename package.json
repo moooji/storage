@@ -4,12 +4,12 @@
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
   "main": "dist/index.js",
   "scripts": {
-    "test": "mocha",
+    "test": "npm run transpile && mocha",
     "deploy-patch": "npm version patch && npm publish && git add . && git commit -m",
     "deploy-minor": "npm version minor && npm publish && git add . && git commit -m",
     "deploy-major": "npm version major && npm publish && git add . && git commit -m",
-    "transpile": "babel src --retain-lines --out-dir dist",
-    "prepublish": "npm test && npm run transpile && npm run generate-docs",
+    "transpile": "babel src --retain-lines --out-dir dist --copy-files",
+    "prepublish": "npm test && npm run generate-docs",
     "generate-docs": "doxdox './src/*.js' --layout markdown --output README.md"
   },
   "engines": {
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/moooji/storage",
   "dependencies": {
     "@google-cloud/storage": "^1.4.0",
-    "@moooji/hash": "^1.0.2",
+    "@moooji/hash": "^1.0.3",
     "aws-sdk": "^2.138.0",
     "custom-error-generator": "^7.0.0",
     "doxdox": "^2.0.3",
