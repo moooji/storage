@@ -1,4 +1,4 @@
-# [@moooji/storage](https://github.com/moooji/storage) *2.0.7*
+# [@moooji/storage](https://github.com/moooji/storage) *2.0.8*
 
 > Storage provider (AWS S3, Google Cloud Storage)
 
