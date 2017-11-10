@@ -49,7 +49,7 @@ function Storage(options) {
    * @param {string} mimeType - MIME type
    * @returns {Promise}
    */
-Storage.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, buffer, mimeType, isPublic = false) {
+Storage.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, buffer, mimeType, maxAge, isPublic = false) {
     if (!is.string(key)) {
       throw new TypeError('No valid key provided');
     }
@@ -62,19 +62,23 @@ Storage.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, bu
       throw new TypeError('No valid mime type provided');
     }
 
+    if (maxAge && !is.natural(maxAge)) {
+      throw new TypeError('Invalid max age provided');
+    }
+
     try {
-      yield this.client.save(key, buffer, mimeType, isPublic);
+      yield this.client.save(key, buffer, mimeType, maxAge, isPublic);
     } catch (err) {
       throw new this.StorageError(`Could not store object [${key}] - ${err.message}`);
     }
-  });function save(_x, _x2, _x3) {return _ref.apply(this, arguments);}return save;})();
+  });function save(_x, _x2, _x3, _x4) {return _ref.apply(this, arguments);}return save;})();
 
 /**
-                                                                                         * Removes one or several objects from Storage
-                                                                                         *
-                                                                                         * @param {string|Array<string>} key - Key(s)
-                                                                                         * @returns {Promise}
-                                                                                         */
+                                                                                              * Removes one or several objects from Storage
+                                                                                              *
+                                                                                              * @param {string|Array<string>} key - Key(s)
+                                                                                              * @returns {Promise}
+                                                                                              */
 Storage.prototype.remove = (() => {var _ref2 = _asyncToGenerator(function* (key) {
     let keys = null;
 
@@ -93,6 +97,6 @@ Storage.prototype.remove = (() => {var _ref2 = _asyncToGenerator(function* (key)
     } catch (err) {
       throw new this.StorageError(`Could not remove object(s) ${keys} - ${err.message}`);
     }
-  });function remove(_x4) {return _ref2.apply(this, arguments);}return remove;})();
+  });function remove(_x5) {return _ref2.apply(this, arguments);}return remove;})();
 
 module.exports = create;

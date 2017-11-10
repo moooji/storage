@@ -129,6 +129,19 @@ describe("Storage - Save", () => {
       });
   });
 
+  it("should throw TypeError if invalid max-age is provided", () => {
+    const key = "abc";
+    const buffer = readFile("./assets/image.jpg");
+    const mimeType = 'image/jpeg';
+    const maxAge = "abc";
+
+    return expect(storage.save(key, buffer, mimeType, maxAge))
+      .to.be.rejectedWith(TypeError)
+      .then(() => {
+        expect(storage.client.save.callCount).to.equal(0);
+      });
+  });
+
   it("should store object with key", () => {
     const key = "abc";
     const buffer = readFile("./assets/image.jpg");
@@ -136,6 +149,17 @@ describe("Storage - Save", () => {
 
     return expect(storage.save(key, buffer, mimeType)).to.be.eventually.fulfilled.then(() => {
       expect(storage.client.save.calledWith(key, buffer, mimeType)).to.equal(true);
+    });
+  });
+
+  it("should store object with key and max age", () => {
+    const key = "abc";
+    const buffer = readFile("./assets/image.jpg");
+    const mimeType = 'image/jpeg';
+    const maxAge = 86400;
+
+    return expect(storage.save(key, buffer, mimeType, maxAge)).to.be.eventually.fulfilled.then(() => {
+      expect(storage.client.save.calledWith(key, buffer, mimeType, maxAge)).to.equal(true);
     });
   });
 

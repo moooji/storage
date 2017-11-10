@@ -40,26 +40,18 @@ function StorageClient(options) {
    * @param {string} mimeType - MIME type
    * @returns {Promise}
    */
-StorageClient.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, buffer, mimeType, isPublic = false) {
+StorageClient.prototype.save = (() => {var _ref = _asyncToGenerator(function* (key, buffer, mimeType, maxAge, isPublic) {
     try {
-      if (!is.string(key)) {
-        throw new TypeError('No valid key provided');
-      }
-
-      if (!is.buffer(buffer)) {
-        throw new TypeError('No buffer provided');
-      }
-
-      if (!is.string(mimeType)) {
-        throw new TypeError('No valid mime type provided');
-      }
-
       const file = this.bucket.file(key);
 
       const metadata = {
         md5Hash: hash(buffer, "base64"),
         contentType: mimeType };
 
+
+      if (maxAge) {
+        metadata.cacheControl = `max-age=${maxAge}`;
+      }
 
       if (isPublic) {
         metadata.acl = [
@@ -74,16 +66,16 @@ StorageClient.prototype.save = (() => {var _ref = _asyncToGenerator(function* (k
     } catch (err) {
       throw new this.StorageError(`Could not store object in GCS bucket - ${err.message}`);
     }
-  });function save(_x, _x2, _x3) {return _ref.apply(this, arguments);}return save;})();
+  });function save(_x, _x2, _x3, _x4, _x5) {return _ref.apply(this, arguments);}return save;})();
 
 /**
-                                                                                         * Removes one or several objects from GCS
-                                                                                         *
-                                                                                         * @param {string|Array<String>} keys - Keys
-                                                                                         * @returns {Promise}
-                                                                                         */
+                                                                                                   * Removes one or several objects from GCS
+                                                                                                   *
+                                                                                                   * @param {string|Array<String>} keys - Keys
+                                                                                                   * @returns {Promise}
+                                                                                                   */
 StorageClient.prototype.remove = (() => {var _ref2 = _asyncToGenerator(function* (keys) {
 
-  });function remove(_x4) {return _ref2.apply(this, arguments);}return remove;})();
+  });function remove(_x6) {return _ref2.apply(this, arguments);}return remove;})();
 
 module.exports = StorageClient;

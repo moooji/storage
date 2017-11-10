@@ -40,25 +40,17 @@ function StorageClient(options) {
  * @param {string} mimeType - MIME type
  * @returns {Promise}
  */
-StorageClient.prototype.save = async function save(key, buffer, mimeType, isPublic = false) {
+StorageClient.prototype.save = async function save(key, buffer, mimeType, maxAge, isPublic) {
   try {
-    if (!is.string(key)) {
-      throw new TypeError('No valid key provided');
-    }
-
-    if (!is.buffer(buffer)) {
-      throw new TypeError('No buffer provided');
-    }
-
-    if (!is.string(mimeType)) {
-      throw new TypeError('No valid mime type provided');
-    }
-
     const file = this.bucket.file(key);
 
     const metadata = {
       md5Hash: hash(buffer, "base64"),
-      contentType: mimeType
+      contentType: mimeType,
+    }
+
+    if (maxAge) {
+      metadata.cacheControl = `max-age=${maxAge}`;
     }
 
     if (isPublic) {

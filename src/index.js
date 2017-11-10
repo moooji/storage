@@ -49,7 +49,7 @@ function Storage(options) {
  * @param {string} mimeType - MIME type
  * @returns {Promise}
  */
-Storage.prototype.save = async function save(key, buffer, mimeType, isPublic = false) {
+Storage.prototype.save = async function save(key, buffer, mimeType, maxAge, isPublic = false) {
   if (!is.string(key)) {
     throw new TypeError('No valid key provided');
   }
@@ -62,8 +62,12 @@ Storage.prototype.save = async function save(key, buffer, mimeType, isPublic = f
     throw new TypeError('No valid mime type provided');
   }
 
+  if (maxAge && !is.natural(maxAge)) {
+    throw new TypeError('Invalid max age provided');
+  }
+
   try {
-    await this.client.save(key, buffer, mimeType, isPublic);
+    await this.client.save(key, buffer, mimeType, maxAge, isPublic);
   } catch (err) {
     throw new this.StorageError(`Could not store object [${key}] - ${err.message}`);
   }

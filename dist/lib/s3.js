@@ -43,7 +43,7 @@ function StorageClient(options) {
    * @param {string} mimeType - MIME type
    * @returns {Promise}
    */
-StorageClient.prototype.save = function save(key, buffer, mimeType, isPublic = false) {
+StorageClient.prototype.save = function save(key, buffer, mimeType, maxAge, isPublic) {
   return new Promise((resolve, reject) => {
     const checksum = this.getChecksum(buffer);
 
@@ -55,6 +55,10 @@ StorageClient.prototype.save = function save(key, buffer, mimeType, isPublic = f
       ContentType: mimeType,
       ContentMD5: hash(buffer, "base64") };
 
+
+    if (maxAge) {
+      params.CacheControl = `max-age=${maxAge}`;
+    }
 
     return this.client.upload(params, (err, res) => {
       if (err) {
