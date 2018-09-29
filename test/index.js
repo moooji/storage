@@ -2,16 +2,14 @@
 
 const fs = require("fs");
 const path = require("path");
-const Joi = require('joi');
 const sinon = require("sinon");
 const chai = require("chai");
 const expect = require("chai").expect;
 const chaiAsPromised = require("chai-as-promised");
-const createError = require('custom-error-generator');
 
-const createStorage = require("../dist/index");
-const S3 = require("../dist/lib/s3");
-const GCS = require("../dist/lib/gcs");
+const createStorage = require("../index");
+const S3 = require("../lib/s3");
+const GCS = require("../lib/gcs");
 
 chai.use(chaiAsPromised);
 
@@ -23,39 +21,25 @@ function readFile(relPath) {
  * Create
  */
 describe("Storage - Create", () => {
-  it("should throw ValidationError if no options are provided", () => {
-    expect(() => createStorage()).to.throw().with.property('isJoi', true);
+  it("should throw with code 'storage/invalid-bucket' if no bucket name is supplied", () => {
+    expect(() => createStorage(null, "s3"))
+      .to.throw(Error)
+      .that.has.property("code")
+      .that.equals("storage/invalid-bucket");
   });
 
-  it("should throw ValidationError if no S3 or GCS options are provided", () => {
-    expect(() => createStorage({})).to.throw().with.property('isJoi', true);
+  it("should throw with code 'storage/invalid-provider' for invalid provider", () => {
+    expect(() => createStorage("bucket", "wrong-provider"))
+      .to.throw(Error)
+      .that.has.property("code")
+      .that.equals("storage/invalid-provider");
   });
 
-  it("should throw ValidationError if S3 and GCS options are provided", () => {
-    const s3 = {
-      accessKeyId: "accessKeyId",
-      secretAccessKey: "secretAccessKey",
-      region: "region",
-      bucket: "bucket"
-    };
-
-    const gcs = {
-      projectId: "projectId",
-      bucket: "bucket"
-    };
-
-    expect(() => createStorage({ s3, gcs })).to.throw().with.property('isJoi', true);
-  });
-
-  it("should throw ValidationError if S3 options are invalid", () => {
-    const options = {
-      accessKeyId: 123,
-      secretAccessKey: "secretAccessKey",
-      region: "region",
-      bucket: "bucket"
-    };
-
-    expect(() => createStorage({ s3: options })).to.throw().with.property('isJoi', true);
+  it("should throw with code 'storage/invalid-client' if no provider nor client is supplied", () => {
+    expect(() => createStorage("bucket", null, {}))
+      .to.throw(Error)
+      .that.has.property("code")
+      .that.equals("storage/invalid-client");
   });
 
   it("should create storage instance with S3 client", () => {
@@ -66,18 +50,8 @@ describe("Storage - Create", () => {
       bucket: "bucket"
     };
 
-    const storage = createStorage({ s3: options });
-
+    const storage = createStorage("bucket", "s3", options);
     expect(storage.client).to.be.instanceof(S3);
-  });
-
-  it("should throw ValidationError if GCS options are invalid", () => {
-    const options = {
-      projectId: 123,
-      bucket: "bucket"
-    };
-
-    expect(() => createStorage({ gcs: options })).to.throw().with.property('isJoi', true);
   });
 
   it("should create storage instance with GCS client", () => {
@@ -86,8 +60,7 @@ describe("Storage - Create", () => {
       bucket: "bucket"
     };
 
-    const storage = createStorage({ gcs: options });
-
+    const storage = createStorage("bucket", "gcs", options);
     expect(storage.client).to.be.instanceof(GCS);
   });
 });
@@ -102,13 +75,13 @@ describe("Storage - Save", () => {
     const client = {};
     client.save = sinon.stub();
     client.remove = sinon.stub();
-    storage = createStorage({ client });
+    storage = createStorage("bucket", null, {}, client);
   });
 
   it("should throw TypeError if no key is provided", () => {
     const key = null;
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
+    const mimeType = "image/jpeg";
 
     return expect(storage.save(key, buffer, mimeType))
       .to.be.rejectedWith(TypeError)
@@ -120,7 +93,7 @@ describe("Storage - Save", () => {
   it("should throw TypeError if invalid key is provided", () => {
     const key = 123;
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
+    const mimeType = "image/jpeg";
 
     return expect(storage.save(key, buffer, mimeType))
       .to.be.rejectedWith(TypeError)
@@ -132,10 +105,10 @@ describe("Storage - Save", () => {
   it("should throw TypeError if invalid max-age is provided", () => {
     const key = "abc";
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
-    const maxAge = "abc";
+    const mimeType = "image/jpeg";
+    const cacheMaxAge = "abc";
 
-    return expect(storage.save(key, buffer, mimeType, maxAge))
+    return expect(storage.save(key, buffer, mimeType, cacheMaxAge))
       .to.be.rejectedWith(TypeError)
       .then(() => {
         expect(storage.client.save.callCount).to.equal(0);
@@ -145,37 +118,50 @@ describe("Storage - Save", () => {
   it("should store object with key", () => {
     const key = "abc";
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
+    const mimeType = "image/jpeg";
 
-    return expect(storage.save(key, buffer, mimeType)).to.be.eventually.fulfilled.then(() => {
-      expect(storage.client.save.calledWith(key, buffer, mimeType)).to.equal(true);
+    return expect(
+      storage.save(key, buffer, mimeType)
+    ).to.be.eventually.fulfilled.then(() => {
+      expect(storage.client.save.calledWith(key, buffer, mimeType)).to.equal(
+        true
+      );
     });
   });
 
   it("should store object with key and max age", () => {
     const key = "abc";
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
-    const maxAge = 86400;
+    const mimeType = "image/jpeg";
+    const cacheMaxAge = 86400;
 
-    return expect(storage.save(key, buffer, mimeType, maxAge)).to.be.eventually.fulfilled.then(() => {
-      expect(storage.client.save.calledWith(key, buffer, mimeType, maxAge)).to.equal(true);
+    return expect(
+      storage.save(key, buffer, mimeType, cacheMaxAge)
+    ).to.be.eventually.fulfilled.then(() => {
+      expect(
+        storage.client.save.calledWith(key, buffer, mimeType, cacheMaxAge)
+      ).to.equal(true);
     });
   });
 
-  it("should be rejected with Storage error if files cannot be stored", () => {
+  it("should be rejected with Storage exception if files cannot be stored", () => {
     const key = "abc";
     const buffer = readFile("./assets/image.jpg");
-    const mimeType = 'image/jpeg';
-    const errorClient = { StorageError: createError('StorageError') };
+    const mimeType = "image/jpeg";
+    const errorClient = {};
 
-    errorClient.save = (key, buffer) => {
-      throw errorClient.StorageError('Failed');
-    }
+    errorClient.save = () => {
+      throw new Error("Could not save file");
+    };
 
-    storage = createStorage({ client: errorClient });
+    storage = createStorage("bucket", null, {}, errorClient);
 
-    return expect(storage.save(key, buffer, mimeType)).to.be.rejectedWith(storage.StorageError)
+    return storage
+      .save(key, buffer, mimeType)
+      .then(() => {
+        throw new Error("This should not succeed");
+      })
+      .catch(err => expect(err.code).to.equal(storage.STORAGE_EXCEPTION));
   });
 });
 
@@ -188,7 +174,7 @@ describe("Storage - Remove", () => {
   before(() => {
     const client = {};
     client.remove = sinon.stub();
-    storage = createStorage({ client });
+    storage = createStorage("bucket", null, {}, client);
   });
 
   it("should throw TypeError if no keys are provided", () => {
@@ -228,11 +214,15 @@ describe("Storage - Remove", () => {
     const errorClient = {};
 
     errorClient.remove = () => {
-      throw Error('Failed');
-    }
+      throw Error("Failed");
+    };
 
-    storage = createStorage({ client: errorClient });
+    storage = createStorage("bucket", null, {}, errorClient);
 
-    return expect(storage.remove(keys)).to.be.rejectedWith(storage.StorageError)
+    return storage.remove(keys)
+    .then(() => {
+      throw new Error("This should not succeed");
+    })
+    .catch(err => expect(err.code).to.equal(storage.STORAGE_EXCEPTION));
   });
 });

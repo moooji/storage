@@ -1,19 +1,18 @@
 {
   "name": "@moooji/storage",
-  "version": "2.0.9",
+  "version": "3.0.0",
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
-    "test": "npm run transpile && mocha",
+    "test": "mocha",
     "deploy-patch": "npm version patch && npm publish && git add . && git commit -m",
     "deploy-minor": "npm version minor && npm publish && git add . && git commit -m",
     "deploy-major": "npm version major && npm publish && git add . && git commit -m",
-    "transpile": "babel src --retain-lines --out-dir dist --copy-files",
     "prepublish": "npm test && npm run generate-docs",
     "generate-docs": "doxdox './src/*.js' --layout markdown --output README.md"
   },
   "engines": {
-    "node": ">=6.5.0"
+    "node": ">=8.0.0"
   },
   "repository": {
     "type": "git",
@@ -33,28 +32,21 @@
   },
   "homepage": "https://github.com/moooji/storage",
   "dependencies": {
-    "@google-cloud/storage": "^1.4.0",
-    "@moooji/hash": "^1.0.3",
-    "aws-sdk": "^2.149.0",
-    "custom-error-generator": "^7.0.0",
-    "doxdox": "^2.0.3",
-    "fast-crc32c": "^1.0.4",
-    "joi": "^13.0.1",
-    "valido": "^2.0.17"
+    "@google-cloud/storage": "^2.0.3",
+    "@moooji/error-builder": "^1.0.2",
+    "@moooji/hash": "^2.0.0",
+    "aws-sdk": "^2.325.0",
+    "joi": "^13.7.0",
+    "valido": "^2.0.20"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-latest-node": "^0.4.0",
-    "babel-runtime": "^6.26.0",
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^4.10.0",
-    "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jsx-a11y": "^6.0.2",
-    "eslint-plugin-react": "^7.4.0",
-    "mocha": "^4.0.1",
+    "eslint": "^5.6.1",
+    "eslint-plugin-promise": "^4.0.1",
+    "mocha": "^5.2.0",
     "mocha-eslint": "^4.1.0",
-    "sinon": "^4.1.2"
+    "sinon": "^6.3.4",
+    "doxdox": "^2.0.3"
   }
 }
