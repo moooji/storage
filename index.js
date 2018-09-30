@@ -23,15 +23,15 @@ function Storage(bucket, provider = "gcs", options = {}, client) {
   this.INVALID_CLIENT = 'storage/invalid-client';
 
   if (!is.string(bucket)) {
-    throw new createError("Invalid bucket name", this.INVALID_BUCKET);
+    throw createError("Invalid bucket name", this.INVALID_BUCKET);
   }
 
   if (is.existy(provider) && !this.providers.includes(provider)) {
-    throw new createError("Invalid provider", this.INVALID_PROVIDER);
+    throw createError("Invalid provider", this.INVALID_PROVIDER);
   }
 
   if (!is.existy(provider) && !is.existy(client)) {
-    throw new createError("Invalid or missing client", this.INVALID_CLIENT);
+    throw createError("Invalid or missing client", this.INVALID_CLIENT);
   }
 
   if (client) {

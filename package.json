@@ -1,6 +1,6 @@
 {
   "name": "@moooji/storage",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
   "main": "index.js",
   "scripts": {
