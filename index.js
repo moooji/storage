@@ -93,4 +93,23 @@ Storage.prototype.remove = async function remove(key) {
   return this.client.remove(keys);
 }
 
+/**
+ * Downloads an objects from Storage
+ *
+ * @param {string} key - Key
+ * @param {string} path - Local path
+ * @returns {Promise}
+ */
+Storage.prototype.download = async function download(key, path) {
+  if (!key) {
+    throw new TypeError('No valid object key provided');
+  }
+
+  if (!path) {
+    throw new TypeError('No valid path provided');
+  }
+
+  return this.client.download(key, path);
+}
+
 module.exports = create;
