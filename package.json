@@ -1,6 +1,6 @@
 {
   "name": "@moooji/storage",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Storage provider (AWS S3, Google Cloud Storage)",
   "main": "index.js",
   "scripts": {
@@ -32,21 +32,21 @@
   },
   "homepage": "https://github.com/moooji/storage",
   "dependencies": {
-    "@google-cloud/storage": "^2.0.3",
-    "@moooji/error-builder": "^1.0.2",
-    "@moooji/hash": "^2.0.0",
-    "aws-sdk": "^2.325.0",
-    "joi": "^13.7.0",
-    "valido": "^2.0.20"
+    "@google-cloud/storage": "^2.1.0",
+    "@moooji/error-builder": "^1.0.3",
+    "@moooji/hash": "^2.0.1",
+    "aws-sdk": "^2.337.0",
+    "joi": "^14.0.0",
+    "valido": "^2.1.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^5.6.1",
+    "eslint": "^5.7.0",
     "eslint-plugin-promise": "^4.0.1",
     "mocha": "^5.2.0",
     "mocha-eslint": "^4.1.0",
-    "sinon": "^6.3.4",
+    "sinon": "^7.0.0",
     "doxdox": "^2.0.3"
   }
 }
