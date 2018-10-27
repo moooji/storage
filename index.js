@@ -1,6 +1,8 @@
 'use strict';
 
+const fs = require("fs").promises;
 const is = require('valido');
+const hash = require("@moooji/hash");
 const createError = require('@moooji/error-builder');
 
 const S3 = require('./lib/s3');
@@ -98,9 +100,10 @@ Storage.prototype.remove = async function remove(key) {
  *
  * @param {string} key - Key
  * @param {string} path - Local path
+ * @param {boolean} force - Download even if file exists locally
  * @returns {Promise}
  */
-Storage.prototype.download = async function download(key, path) {
+Storage.prototype.download = async function download(key, path, force = true) {
   if (!key) {
     throw new TypeError('No valid object key provided');
   }
@@ -109,7 +112,37 @@ Storage.prototype.download = async function download(key, path) {
     throw new TypeError('No valid path provided');
   }
 
-  return this.client.download(key, path);
+  if (force) {
+    return this.client.download(key, path);
+  }
+
+  try {
+    const buffer = await fsAsync.readFile(path);
+    const localMd5 = hash(buffer, "md5", "base64");
+    const storageMd5 = await this.client.getMd5(key);
+
+    console.log(localMd5, storageMd5);
+
+    if (localMd5 !== storageMd5) {
+      throw new Error("MD5 mismatch");
+    }
+  } catch (err) {
+    return this.client.download(key, path);
+  }
+}
+
+/**
+ * Gets an object's MD5 content hash
+ *
+ * @param {string} key - Key
+ * @returns {Promise}
+ */
+Storage.prototype.getMd5 = async function getMd5(key) {
+  if (!key) {
+    throw new TypeError('No valid object key provided');
+  }
+
+  return this.client.getMd5(key);
 }
 
 module.exports = create;
