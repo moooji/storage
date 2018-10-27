@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
 const fs = require("fs").promises;
-const is = require('valido');
+const is = require("valido");
 const hash = require("@moooji/hash");
-const createError = require('@moooji/error-builder');
+const createError = require("@moooji/error-builder");
 
-const S3 = require('./lib/s3');
-const GCS = require('./lib/gcs');
+const S3 = require("./lib/s3");
+const GCS = require("./lib/gcs");
 
 /**
  * Factory that returns a Storage instance
@@ -15,14 +15,14 @@ const GCS = require('./lib/gcs');
  * @returns {Storage}
  */
 function create(bucket, provider, options, client) {
-  return new Storage(bucket, provider, options, client)
+  return new Storage(bucket, provider, options, client);
 }
 
 function Storage(bucket, provider = "gcs", options = {}, client) {
   this.providers = ["s3", "gcs"];
-  this.INVALID_BUCKET = 'storage/invalid-bucket';
-  this.INVALID_PROVIDER = 'storage/invalid-provider';
-  this.INVALID_CLIENT = 'storage/invalid-client';
+  this.INVALID_BUCKET = "storage/invalid-bucket";
+  this.INVALID_PROVIDER = "storage/invalid-provider";
+  this.INVALID_CLIENT = "storage/invalid-client";
 
   if (!is.string(bucket)) {
     throw createError("Invalid bucket name", this.INVALID_BUCKET);
@@ -53,25 +53,31 @@ function Storage(bucket, provider = "gcs", options = {}, client) {
  * @param {string} mimeType - MIME type
  * @returns {Promise}
  */
-Storage.prototype.save = async function save(key, buffer, mimeType, cacheMaxAge, isPublic = false) {
+Storage.prototype.save = async function save(
+  key,
+  buffer,
+  mimeType,
+  cacheMaxAge,
+  isPublic = false
+) {
   if (!is.string(key)) {
-    throw new TypeError('No valid key provided');
+    throw new TypeError("No valid key provided");
   }
 
   if (!is.buffer(buffer)) {
-    throw new TypeError('No buffer provided');
+    throw new TypeError("No buffer provided");
   }
 
   if (!is.string(mimeType)) {
-    throw new TypeError('No valid mime type provided');
+    throw new TypeError("No valid mime type provided");
   }
 
   if (cacheMaxAge && !is.natural(cacheMaxAge)) {
-    throw new TypeError('Invalid cache max-age provided');
+    throw new TypeError("Invalid cache max-age provided");
   }
 
   return this.client.save(key, buffer, mimeType, cacheMaxAge, isPublic);
-}
+};
 
 /**
  * Removes one or several objects from Storage
@@ -89,11 +95,11 @@ Storage.prototype.remove = async function remove(key) {
   }
 
   if (!keys) {
-    throw new TypeError('No valid object keys provided');
+    throw new TypeError("No valid object keys provided");
   }
 
   return this.client.remove(keys);
-}
+};
 
 /**
  * Downloads an objects from Storage
@@ -103,13 +109,13 @@ Storage.prototype.remove = async function remove(key) {
  * @param {boolean} force - Download even if file exists locally
  * @returns {Promise}
  */
-Storage.prototype.download = async function download(key, path, force = true) {
+Storage.prototype.download = async function download(key, path, force = false) {
   if (!key) {
-    throw new TypeError('No valid object key provided');
+    throw new TypeError("No valid object key provided");
   }
 
   if (!path) {
-    throw new TypeError('No valid path provided');
+    throw new TypeError("No valid path provided");
   }
 
   if (force) {
@@ -117,9 +123,10 @@ Storage.prototype.download = async function download(key, path, force = true) {
   }
 
   try {
-    const buffer = await fsAsync.readFile(path);
-    const localMd5 = hash(buffer, "md5", "base64");
-    const storageMd5 = await this.client.getMd5(key);
+    const [localMd5, storageMd5] = await Promise.all([
+      fs.readFile(path).then(buffer => hash(buffer, "md5", "base64")),
+      this.client.getMd5(key)
+    ]);
 
     console.log(localMd5, storageMd5);
 
@@ -127,9 +134,10 @@ Storage.prototype.download = async function download(key, path, force = true) {
       throw new Error("MD5 mismatch");
     }
   } catch (err) {
+    console.log(err);
     return this.client.download(key, path);
   }
-}
+};
 
 /**
  * Gets an object's MD5 content hash
@@ -139,10 +147,10 @@ Storage.prototype.download = async function download(key, path, force = true) {
  */
 Storage.prototype.getMd5 = async function getMd5(key) {
   if (!key) {
-    throw new TypeError('No valid object key provided');
+    throw new TypeError("No valid object key provided");
   }
 
   return this.client.getMd5(key);
-}
+};
 
 module.exports = create;
