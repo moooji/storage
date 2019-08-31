@@ -1,12 +1,7 @@
-"use strict";
-
-const fs = require("fs").promises;
+const fs = require("fs");
 const is = require("valido");
-const hash = require("@moooji/hash");
 const createError = require("@moooji/error-builder");
-
-const S3 = require("./lib/s3");
-const GCS = require("./lib/gcs");
+const { Storage: GCS } = require("@google-cloud/storage");
 
 /**
  * Factory that returns a Storage instance
@@ -14,35 +9,21 @@ const GCS = require("./lib/gcs");
  * @param {object} options Options
  * @returns {Storage}
  */
-function create(bucket, provider, options, client) {
-  return new Storage(bucket, provider, options, client);
+function create(bucket, options) {
+  return new Storage(bucket, options);
 }
 
-function Storage(bucket, provider = "gcs", options = {}, client) {
-  this.providers = ["s3", "gcs"];
-  this.INVALID_BUCKET = "storage/invalid-bucket";
-  this.INVALID_PROVIDER = "storage/invalid-provider";
-  this.INVALID_CLIENT = "storage/invalid-client";
+function Storage(bucket, options = {}) {
+  this.BAD_REQUEST = "storage/bad-request";
+  this.STORAGE_EXCEPTION = "storage/storage-exception";
 
   if (!is.string(bucket)) {
-    throw createError("Invalid bucket name", this.INVALID_BUCKET);
+    throw createError("Invalid bucket name", this.BAD_REQUEST);
   }
 
-  if (is.existy(provider) && !this.providers.includes(provider)) {
-    throw createError("Invalid provider", this.INVALID_PROVIDER);
-  }
-
-  if (!is.existy(provider) && !is.existy(client)) {
-    throw createError("Invalid or missing client", this.INVALID_CLIENT);
-  }
-
-  if (client) {
-    this.client = client;
-  } else if (provider === "s3") {
-    this.client = new S3(bucket, options, client);
-  } else if (provider === "gcs") {
-    this.client = new GCS(bucket, options, client);
-  }
+  this.client = options.client || new GCS();
+  this.bucket = this.client.bucket(bucket);
+  this.baseUrl = "https://storage.googleapis.com";
 }
 
 /**
@@ -51,6 +32,9 @@ function Storage(bucket, provider = "gcs", options = {}, client) {
  * @param {string} key - Key
  * @param {Buffer} buffer - Buffer
  * @param {string} mimeType - MIME type
+ * @param {number} cacheMaxAge - Cache Max Age
+ * @param {boolean} gzip - Use GZIP compression
+ * @param {boolean} resumable - Resumable upload
  * @returns {Promise}
  */
 Storage.prototype.save = async function save(
@@ -58,25 +42,117 @@ Storage.prototype.save = async function save(
   buffer,
   mimeType,
   cacheMaxAge,
-  isPublic = false
+  gzip = true,
+  resumable = true
 ) {
   if (!is.string(key)) {
-    throw new TypeError("No valid key provided");
+    throw createError("No valid key provided", this.BAD_REQUEST);
   }
 
   if (!is.buffer(buffer)) {
-    throw new TypeError("No buffer provided");
+    throw createError("No buffer provided", this.BAD_REQUEST);
   }
 
   if (!is.string(mimeType)) {
-    throw new TypeError("No valid mime type provided");
+    throw createError("No valid mime type provided", this.BAD_REQUEST);
   }
 
   if (cacheMaxAge && !is.natural(cacheMaxAge)) {
-    throw new TypeError("Invalid cache max-age provided");
+    throw createError("Invalid cache max-age provided", this.BAD_REQUEST);
   }
 
-  return this.client.save(key, buffer, mimeType, cacheMaxAge, isPublic);
+  try {
+    const file = this.bucket.file(key);
+
+    const metadata = {
+      contentType: mimeType,
+    };
+
+    if (cacheMaxAge) {
+      metadata.cacheControl = `max-age=${cacheMaxAge}`;
+    }
+
+    await file.save(buffer, {
+      metadata,
+      gzip,
+      resumable,
+      validation: "crc32c",
+    });
+
+    return `${this.baseUrl}/${this.bucket.name}/${key}`;
+  } catch (err) {
+    throw createError(err.message, this.STORAGE_EXCEPTION);
+  }
+};
+
+/**
+ * Streams a local file to Storage
+ *
+ * @param {string} key - Key
+ * @param {string} path - Path
+ * @param {string} mimeType - MIME type
+ * @param {number} cacheMaxAge - Cache Max Age
+ * @param {boolean} gzip - Use GZIP compression
+ * @param {boolean} resumable - Resumable upload
+ * @returns {Promise}
+ */
+Storage.prototype.upload = async function upload(
+  key,
+  path,
+  mimeType,
+  cacheMaxAge = 31536000,
+  gzip = true,
+  resumable = true
+) {
+  if (!is.string(key)) {
+    throw createError("No valid key provided", this.BAD_REQUEST);
+  }
+
+  if (!is.string(path)) {
+    throw createError("No path provided", this.BAD_REQUEST);
+  }
+
+  if (!is.string(mimeType)) {
+    throw createError("No valid mime type provided", this.BAD_REQUEST);
+  }
+
+  if (cacheMaxAge && !is.natural(cacheMaxAge)) {
+    throw createError("Invalid cache max-age provided", this.BAD_REQUEST);
+  }
+
+  try {
+    const file = this.bucket.file(key);
+
+    const metadata = {
+      contentType: mimeType,
+    };
+
+    if (cacheMaxAge) {
+      metadata.cacheControl = `max-age=${cacheMaxAge}`;
+    }
+
+    const stream = file.createWriteStream({
+      metadata,
+      resumable,
+      gzip,
+      validation: "crc32c",
+    });
+
+    const storageUrl = await new Promise((resolve, reject) => {
+      fs.createReadStream(path)
+        .pipe(stream)
+        .on("error", err => {
+          reject(err);
+        })
+        .on("finish", () => {
+          resolve(`${this.baseUrl}/${this.bucket.name}/${key}`);
+        });
+    });
+
+    return storageUrl;
+  } catch (err) {
+    throw createError(err.message, this.STORAGE_EXCEPTION);
+  }
 };
 
 /**
@@ -95,10 +171,10 @@ Storage.prototype.remove = async function remove(key) {
   }
 
   if (!keys) {
-    throw new TypeError("No valid object keys provided");
+    throw createError("No valid object keys provided", this.BAD_REQUEST);
   }
 
-  return this.client.remove(keys);
+  return this.bucket.file(keys).delete();
 };
 
 /**
@@ -106,36 +182,32 @@ Storage.prototype.remove = async function remove(key) {
  *
  * @param {string} key - Key
  * @param {string} path - Local path
- * @param {boolean} force - Download even if file exists locally
  * @returns {Promise}
  */
-Storage.prototype.download = async function download(key, path, force = false) {
+Storage.prototype.download = async function download(key, path) {
   if (!key) {
-    throw new TypeError("No valid object key provided");
+    throw createError("No valid object key provided", this.BAD_REQUEST);
   }
 
   if (!path) {
-    throw new TypeError("No valid path provided");
-  }
-
-  if (force) {
-    return this.client.download(key, path);
+    throw createError("No valid path provided", this.BAD_REQUEST);
   }
 
   try {
-    const [localMd5, storageMd5] = await Promise.all([
-      fs.readFile(path).then(buffer => hash(buffer, "md5", "base64")),
-      this.client.getMd5(key)
-    ]);
-
-    console.log(localMd5, storageMd5);
-
-    if (localMd5 !== storageMd5) {
-      throw new Error("MD5 mismatch");
-    }
+    await new Promise((resolve, reject) => {
+      this.bucket
+        .file(key)
+        .createReadStream()
+        .on("error", err => {
+          reject(err);
+        })
+        .on("end", () => {
+          resolve();
+        })
+        .pipe(fs.createWriteStream(path));
+    });
   } catch (err) {
-    console.log(err);
-    return this.client.download(key, path);
+    throw createError(err.message, this.STORAGE_EXCEPTION);
   }
 };
 
@@ -147,10 +219,11 @@ Storage.prototype.download = async function download(key, path, force = false) {
  */
 Storage.prototype.getMd5 = async function getMd5(key) {
   if (!key) {
-    throw new TypeError("No valid object key provided");
+    throw createError("No valid object key provided", this.BAD_REQUEST);
   }
 
-  return this.client.getMd5(key);
+  const [metadata] = await this.bucket.file(key).getMetadata();
+  return metadata.md5Hash;
 };
 
 module.exports = create;
